@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RICO BOT</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+min-height:100vh;
+font-family:Arial,sans-serif;
+color:#fff;
+background:radial-gradient(circle at top,#123b80,#050b1c 65%);
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+.container{
+width:100%;
+max-width:450px;
+background:#0b1830;
+border:1px solid #1765c7;
+border-radius:22px;
+padding:25px;
+box-shadow:0 0 35px #087bff55;
+text-align:center;
+}
+.logo{
+width:75px;
+height:75px;
+margin:auto;
+display:grid;
+place-items:center;
+background:#087bff22;
+border:2px solid #168cff;
+clip-path:polygon(50% 0,95% 35%,78% 90%,22% 90%,5% 35%);
+font-size:25px;
+font-weight:bold;
+}
+h1{color:#54aaff;margin-bottom:8px}
+.subtitle{color:#a9c5e9;font-size:14px;line-height:1.8}
+input{
+width:100%;
+padding:15px;
+margin:18px 0 10px;
+border:1px solid #2679d9;
+border-radius:12px;
+background:#071226;
+color:white;
+font-size:17px;
+text-align:center;
+outline:none;
+}
+button{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:0;
+border-radius:12px;
+background:linear-gradient(90deg,#087bff,#1746c5);
+color:white;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+}
+button:disabled{opacity:.5}
+.secondary{background:#142c4d;border:1px solid #287bd0}
+.danger{background:#8b2635}
+.panel{
+display:none;
+margin-top:20px;
+padding:18px;
+border:1px solid #2679d9;
+border-radius:14px;
+background:#071226;
+}
+.code{
+font-size:27px;
+letter-spacing:5px;
+color:#61b6ff;
+font-weight:bold;
+padding:15px;
+direction:ltr;
+}
+.message{font-size:14px;color:#b7d5fa;margin-top:12px}
+.status{margin-top:15px;color:#7fc2ff}
+.footer{margin-top:25px;font-size:12px;color:#7799c2}
+a{color:#60b5ff;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="logo">R</div>
+
+<h1>RICO BOT</h1>
+
+<p class="subtitle">
+مرحبا بك في RICO BOT لتنصيب أرقام واتساب
+<br>
+ادخل رقمك مع رمز الدولة بدون + أو فراغات
+</p>
+
+<input
+id="phone"
+type="tel"
+placeholder="249XXXXXXXXX"
+autocomplete="tel"
+>
+
+<button id="installBtn" onclick="requestCode()">
+تنصيب البوت
+</button>
+
+<div class="panel" id="result">
+<h3>كود واتساب الخاص بك</h3>
+<div class="code" id="pairCode">--------</div>
+
+<button onclick="copyCode()">نسخ الكود</button>
+
+<p class="message">
+ملاحظة: لا تشارك كود الاقتران مع أي شخص.
+</p>
+</div>
+
+<div class="status" id="connection">
+حالة الاتصال: غير متصل
+</div>
+
+<button class="secondary" onclick="checkStatus()">
+تحديث حالة الاتصال
+</button>
+
+<button class="danger" onclick="disconnectBot()">
+قطع الاتصال
+</button>
+
+<button class="secondary"
+onclick="window.open('https://whatsapp.com/channel/0029Vb8pGX6CRs1tDnkEnC1L','_blank')">
+قناة المطور
+</button>
+
+<div class="footer">
+RICO BOT © 2026
+</div>
+
+<p class="message" id="message"></p>
+</div>
+
+<script>
+let currentToken = sessionStorage.getItem("rico_token") || "";
+
+async function requestCode(){
+const phone=document.getElementById("phone").value.replace(/\D/g,"");
+const message=document.getElementById("message");
+const button=document.getElementById("installBtn");
+
+if(phone.length<8||phone.length>15){
+message.textContent="تأكد من كتابة الرقم بصورة صحيحة.";
+return;
+}
+
+button.disabled=true;
+message.textContent="جارٍ تجهيز كود الاقتران...";
+
+try{
+const response=await fetch("/api/pair",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({phone})
+});
+
+const data=await response.json();
+
+if(!response.ok||!data.success){
+throw new Error(data.message||"فشل طلب الكود.");
+}
+
+currentToken=data.token;
+sessionStorage.setItem("rico_token",currentToken);
+
+document.getElementById("pairCode").textContent=data.code;
+document.getElementById("result").style.display="block";
+message.textContent="تم تجهيز الكود. أكمل الربط من واتساب.";
+
+checkStatus();
+
+}catch(error){
+message.textContent=error.message;
+}finally{
+button.disabled=false;
+}
+}
+
+async function copyCode(){
+const code=document.getElementById("pairCode").textContent;
+if(!code||code==="--------")return;
+
+try{
+await navigator.clipboard.writeText(code);
+alert("تم نسخ الكود.");
+}catch{
+alert("تعذر نسخ الكود.");
+}
+}
+
+async function checkStatus(){
+if(!currentToken){
+document.getElementById("connection").textContent="اطلب كود الاقتران أولاً.";
+return;
+}
+
+try{
+const response=await fetch("/api/my/status",{
+headers:{Authorization:"Bearer "+currentToken}
+});
+
+const data=await response.json();
+if(!response.ok)throw new Error(data.message);
+
+document.getElementById("connection").textContent=
+data.connected?"متصل بنجاح ✓":"في انتظار إكمال ربط واتساب...";
+}catch(error){
+document.getElementById("connection").textContent=
+error.message||"تعذر تحديث الحالة.";
+}
+}
+
+async function disconnectBot(){
+if(!currentToken){
+alert("لا توجد جلسة مسجلة.");
+return;
+}
+
+if(!confirm("هل تريد قطع اتصال رقمك؟"))return;
+
+try{
+const response=await fetch("/api/my/disconnect",{
+method:"POST",
+headers:{Authorization:"Bearer "+currentToken}
+});
+
+const data=await response.json();
+if(!response.ok)throw new Error(data.message);
+
+currentToken="";
+sessionStorage.removeItem("rico_token");
+document.getElementById("result").style.display="none";
+document.getElementById("connection").textContent="غير متصل";
+document.getElementById("message").textContent=data.message;
+
+}catch(error){
+alert(error.message);
+}
+}
+</script>
+</body>
+  </html>
