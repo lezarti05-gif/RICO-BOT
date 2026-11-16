@@ -1,3 +1,5 @@
+import "./server.js";
+
 import { Client } from "meowsab";
 import { subBots } from "./system/sub.js";
 import "meowsab/safe";
