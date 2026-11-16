@@ -43,7 +43,7 @@ width:100%;max-width:470px;position:relative;
 padding:27px 22px;
 background:linear-gradient(145deg,#101e3c,#071226);
 border:1px solid #218cff66;border-radius:25px;
-box-shadow:0 0 45px #087bff22, inset 0 0 25px #168cff08;
+box-shadow:0 0 45px #087bff22,inset 0 0 25px #168cff08;
 }
 .topline{
 display:flex;justify-content:space-between;align-items:center;
@@ -51,13 +51,12 @@ margin-bottom:25px;color:#9fcaff;font-size:12px;
 }
 .live{display:flex;align-items:center;gap:7px}
 .dot{
-width:8px;height:8px;border-radius:50%;background:#30e6a0;
-box-shadow:0 0 12px #30e6a0;
+width:8px;height:8px;border-radius:50%;
+background:#30e6a0;box-shadow:0 0 12px #30e6a0;
 }
 .logo{
 width:83px;height:83px;margin:auto;
-display:grid;place-items:center;
-border-radius:24px;
+display:grid;place-items:center;border-radius:24px;
 background:linear-gradient(145deg,#168cff33,#071226);
 border:2px solid #39aaff;
 box-shadow:0 0 30px #168cff66,inset 0 0 20px #168cff22;
@@ -84,8 +83,7 @@ background:#050e20;color:white;font-size:16px;
 text-align:center;outline:none;transition:.2s;
 }
 input:focus{
-border-color:#55c5ff;
-box-shadow:0 0 17px #168cff44;
+border-color:#55c5ff;box-shadow:0 0 17px #168cff44;
 }
 button{
 width:100%;padding:15px;margin-top:10px;
@@ -98,46 +96,47 @@ box-shadow:0 5px 20px #087bff22;
 button:active{transform:scale(.98)}
 button:disabled{opacity:.55;cursor:wait}
 .secondary{
-background:#102747;border:1px solid #287bd0;
-box-shadow:none;
+background:#102747;border:1px solid #287bd0;box-shadow:none;
 }
 .danger{
-background:#451b32;border:1px solid #a83d61;
-box-shadow:none;
+background:#451b32;border:1px solid #a83d61;box-shadow:none;
 }
 .panel{
 display:none;margin-top:18px;padding:17px;
 border:1px solid #287bd0;border-radius:17px;
-background:#061126;
-box-shadow:inset 0 0 25px #168cff0b;
+background:#061126;box-shadow:inset 0 0 25px #168cff0b;
 }
 .panel h3,.panel h4{color:#71bdff;margin-top:5px}
 .code{
-font-size:29px;letter-spacing:5px;
-color:#72c8ff;font-weight:bold;padding:18px 5px;
-direction:ltr;text-shadow:0 0 17px #168cff;
+font-size:29px;letter-spacing:5px;color:#72c8ff;
+font-weight:bold;padding:18px 5px;direction:ltr;
+text-shadow:0 0 17px #168cff;
 }
 .message{
 font-size:13px;color:#b7d5fa;line-height:1.9;
 }
 .status{
-margin:17px 0;padding:13px;
-border:1px solid #1b4777;border-radius:12px;
-background:#07162d;color:#9dd0ff;
+margin:17px 0;padding:13px;border:1px solid #1b4777;
+border-radius:12px;background:#07162d;color:#9dd0ff;
 font-size:13px;
 }
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .actions button{margin:0}
 .divider{
-height:1px;background:linear-gradient(90deg,transparent,#287bd0,transparent);
+height:1px;
+background:linear-gradient(90deg,transparent,#287bd0,transparent);
 margin:25px 0;
 }
 .footer{
-margin-top:25px;text-align:center;
-font-size:11px;color:#718db4;
+margin-top:25px;text-align:center;font-size:11px;color:#718db4;
 }
 #message,#adminMessage{min-height:20px;text-align:center}
-.small{font-size:11px;color:#7898c0}
+.small{font-size:11px;color:#7898c0;line-height:1.8}
+.checkrow{
+display:flex;align-items:center;gap:10px;
+margin:12px 0;color:#b7d5fa;font-size:13px;
+}
+.checkrow input{width:18px;margin:0;accent-color:#168cff}
 </style>
 </head>
 
@@ -164,8 +163,7 @@ font-size:11px;color:#718db4;
 <input id="phone" type="tel"
 placeholder="249XXXXXXXXX"
 inputmode="numeric"
-autocomplete="tel"
->
+autocomplete="tel">
 
 <p class="small">أدخل الرقم مع رمز الدولة بدون + أو فراغات</p>
 
@@ -192,7 +190,8 @@ autocomplete="tel"
 <button class="danger" onclick="disconnectBot()">قطع الاتصال</button>
 </div>
 
-<button class="secondary" onclick="window.open('https://whatsapp.com/channel/0029VbE0UbjKwqSYg0WUxu42','_blank')">
+<button class="secondary"
+onclick="window.open('https://whatsapp.com/channel/0029VbE0UbjKwqSYg0WUxu42','_blank')">
 قناة المطور
 </button>
 
@@ -202,6 +201,29 @@ autocomplete="tel"
 ⚙ لوحة المطور
 </button>
 
+<!-- التفعيل الأولي -->
+<div id="adminSetup" class="panel">
+<h3>🔐 التفعيل الأولي للمطور</h3>
+<p class="message">
+أدخل كود التفعيل الأولي، ثم اختر كلمة مرور خاصة بك.
+سيُستخدم كود التفعيل مرة واحدة فقط.
+</p>
+
+<input id="activationCode" type="password"
+placeholder="كود التفعيل الأولي">
+
+<input id="setupPassword" type="password"
+placeholder="اختر كلمة مرور جديدة">
+
+<input id="confirmPassword" type="password"
+placeholder="أعد كتابة كلمة المرور">
+
+<button id="activateBtn" onclick="activateAdmin()">
+تفعيل لوحة المطور
+</button>
+</div>
+
+<!-- تسجيل الدخول -->
 <div id="adminLogin" class="panel">
 <h3>دخول المطور</h3>
 <input id="adminPassword" type="password"
@@ -209,6 +231,7 @@ placeholder="كلمة مرور المطور">
 <button onclick="adminLogin()">دخول لوحة المطور</button>
 </div>
 
+<!-- لوحة التحكم -->
 <div id="dashboard" class="panel">
 <h3>لوحة تحكم RICO</h3>
 
@@ -229,10 +252,23 @@ placeholder="كلمة المرور الجديدة">
 
 <div class="divider"></div>
 
-<h4>حد التنصيبات</h4>
+<h4>إعدادات المنصة</h4>
+<label class="small">حد التنصيبات</label>
 <input id="installLimit" type="number"
-min="1" placeholder="10">
+min="1" max="10000" placeholder="10">
+
+<label class="checkrow">
+<input id="maintenance" type="checkbox">
+تفعيل وضع الصيانة
+</label>
+
 <button onclick="saveSettings()">حفظ الإعدادات</button>
+
+<div class="divider"></div>
+
+<button class="danger" onclick="adminLogout()">
+تسجيل خروج المطور
+</button>
 
 <p id="adminMessage" class="message"></p>
 </div>
@@ -254,14 +290,20 @@ let adminToken=sessionStorage.getItem("rico_admin")||"";
 async function readResponse(response){
 const text=await response.text();
 let data;
+
 try{
 data=JSON.parse(text);
 }catch{
-throw new Error(
-"الخادم لم يرجع رداً صحيحاً. تحقق من تشغيل المنصة."
-);
+throw new Error("الخادم لم يرجع رداً صحيحاً. تحقق من تشغيل المنصة.");
 }
+
 return data;
+}
+
+function hideAdminPanels(){
+document.getElementById("adminSetup").style.display="none";
+document.getElementById("adminLogin").style.display="none";
+document.getElementById("dashboard").style.display="none";
 }
 
 async function requestCode(){
@@ -297,6 +339,7 @@ sessionStorage.setItem("rico_token",currentToken);
 document.getElementById("pairCode").textContent=data.code;
 document.getElementById("result").style.display="block";
 message.textContent="تم تجهيز الكود. أكمل الربط من واتساب.";
+
 checkStatus();
 
 }catch(error){
@@ -321,8 +364,7 @@ alert("تعذر النسخ من المتصفح.");
 
 async function checkStatus(){
 if(!currentToken){
-document.getElementById("connection").textContent=
-"اطلب كود الاقتران أولاً.";
+document.getElementById("connection").textContent="اطلب كود الاقتران أولاً.";
 return;
 }
 
@@ -371,12 +413,103 @@ alert(error.message);
 }
 }
 
-function showAdmin(){
-document.getElementById("adminLogin").style.display="block";
+// فتح لوحة المطور وتحديد هل تحتاج تفعيل أم تسجيل دخول
+async function showAdmin(){
+hideAdminPanels();
+document.getElementById("adminMessage").textContent="";
+
+try{
+const response=await fetch("/api/admin/setup-status");
+const data=await readResponse(response);
+
+if(!response.ok)throw new Error(data.message||"تعذر فحص حالة لوحة المطور.");
+
+if(!data.activated){
+document.getElementById("adminSetup").style.display="block";
+return;
 }
 
+if(adminToken){
+const check=await fetch("/api/admin/stats",{
+headers:{Authorization:"Bearer "+adminToken}
+});
+
+if(check.ok){
+document.getElementById("dashboard").style.display="block";
+loadStats();
+return;
+}
+
+adminToken="";
+sessionStorage.removeItem("rico_admin");
+}
+
+document.getElementById("adminLogin").style.display="block";
+
+}catch(error){
+document.getElementById("adminMessage").textContent=error.message;
+}
+}
+
+// إنشاء كلمة مرور المطور لأول مرة
+async function activateAdmin(){
+const activationCode=document.getElementById("activationCode").value;
+const password=document.getElementById("setupPassword").value;
+const confirm=document.getElementById("confirmPassword").value;
+const button=document.getElementById("activateBtn");
+const message=document.getElementById("adminMessage");
+
+if(!activationCode||!password||!confirm){
+message.textContent="أكمل جميع الحقول.";
+return;
+}
+
+if(password.length<10){
+message.textContent="كلمة المرور يجب أن تكون 10 أحرف على الأقل.";
+return;
+}
+
+if(password!==confirm){
+message.textContent="كلمتا المرور غير متطابقتين.";
+return;
+}
+
+button.disabled=true;
+button.textContent="جارٍ تفعيل اللوحة...";
+
+try{
+const response=await fetch("/api/admin/activate",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({activationCode,newPassword:password})
+});
+
+const data=await readResponse(response);
+
+if(!response.ok||!data.success){
+throw new Error(data.message||"فشل التفعيل.");
+}
+
+adminToken=data.token;
+sessionStorage.setItem("rico_admin",adminToken);
+
+document.getElementById("adminSetup").style.display="none";
+document.getElementById("dashboard").style.display="block";
+message.textContent="تم تفعيل لوحة المطور بنجاح.";
+loadStats();
+
+}catch(error){
+message.textContent=error.message;
+}finally{
+button.disabled=false;
+button.textContent="تفعيل لوحة المطور";
+}
+}
+
+// تسجيل الدخول بعد التفعيل
 async function adminLogin(){
 const password=document.getElementById("adminPassword").value;
+const message=document.getElementById("adminMessage");
 
 try{
 const response=await fetch("/api/admin/login",{
@@ -387,7 +520,15 @@ body:JSON.stringify({password})
 
 const data=await readResponse(response);
 
-if(!response.ok)throw new Error(data.message||"فشل الدخول.");
+if(data.needsActivation){
+hideAdminPanels();
+document.getElementById("adminSetup").style.display="block";
+return;
+}
+
+if(!response.ok||!data.success){
+throw new Error(data.message||"فشل الدخول.");
+}
 
 adminToken=data.token;
 sessionStorage.setItem("rico_admin",adminToken);
@@ -398,7 +539,7 @@ document.getElementById("dashboard").style.display="block";
 loadStats();
 
 }catch(error){
-document.getElementById("adminMessage").textContent=error.message;
+message.textContent=error.message;
 }
 }
 
@@ -421,6 +562,7 @@ document.getElementById("stats").textContent=
 " | الصيانة: "+(data.maintenance?"مفعلة":"متوقفة");
 
 document.getElementById("installLimit").value=data.installLimit;
+document.getElementById("maintenance").checked=Boolean(data.maintenance);
 
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
@@ -454,6 +596,7 @@ document.getElementById("adminMessage").textContent=error.message;
 
 async function saveSettings(){
 const installLimit=Number(document.getElementById("installLimit").value);
+const maintenance=document.getElementById("maintenance").checked;
 
 try{
 const response=await fetch("/api/admin/settings",{
@@ -462,7 +605,7 @@ headers:{
 "Content-Type":"application/json",
 Authorization:"Bearer "+adminToken
 },
-body:JSON.stringify({installLimit})
+body:JSON.stringify({installLimit,maintenance})
 });
 
 const data=await readResponse(response);
@@ -475,6 +618,21 @@ loadStats();
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
 }
+}
+
+async function adminLogout(){
+try{
+await fetch("/api/admin/logout",{
+method:"POST",
+headers:{Authorization:"Bearer "+adminToken}
+});
+}catch{}
+
+adminToken="";
+sessionStorage.removeItem("rico_admin");
+hideAdminPanels();
+document.getElementById("adminLogin").style.display="block";
+document.getElementById("adminMessage").textContent="تم تسجيل الخروج.";
 }
 
 if(currentToken)checkStatus();
