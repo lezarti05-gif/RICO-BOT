@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+const INITIAL_ADMIN_PASSWORD = "RICO-START-7319";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json({ limit: "10kb" }));
@@ -38,11 +39,11 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function save() {
+async function save() {
   if (typeof global.saveDB !== "function") {
     throw new Error("Database save function is unavailable");
   }
-  return global.saveDB();
+  await global.saveDB();
 }
 
 function rateLimit(ip) {
@@ -69,7 +70,7 @@ function isAdmin(req) {
   return true;
 }
 
-// كل الأخطاء ترجع JSON
+// معالجة أخطاء JSON
 app.use((err, req, res, next) => {
   console.error("RICO EXPRESS ERROR:", err);
 
@@ -83,6 +84,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// حالة المنصة
 app.get("/api/status", (req, res) => {
   res.json({
     success: true,
@@ -97,12 +99,11 @@ app.post("/api/admin/login", async (req, res) => {
   try {
     const password = String(req.body?.password || "");
     const savedHash = global.db?.admin?.passwordHash;
-    const initial = process.env.RICO_ADMIN_INITIAL_PASSWORD;
 
-    if (!savedHash && !initial) {
-      return res.status(503).json({
+    if (!password) {
+      return res.status(400).json({
         success: false,
-        message: "أضف كلمة المرور الأولية في إعدادات Render."
+        message: "أدخل كلمة المرور."
       });
     }
 
@@ -110,7 +111,9 @@ app.post("/api/admin/login", async (req, res) => {
       .update(password)
       .digest("hex");
 
-    const valid = savedHash ? hash === savedHash : password === initial;
+    const valid = savedHash
+      ? hash === savedHash
+      : password === INITIAL_ADMIN_PASSWORD;
 
     if (!valid) {
       return res.status(401).json({
@@ -243,7 +246,11 @@ app.post("/api/admin/settings", async (req, res) => {
     }
 
     await save();
-    res.json({ success: true, message: "تم حفظ الإعدادات." });
+
+    res.json({
+      success: true,
+      message: "تم حفظ الإعدادات."
+    });
   } catch (error) {
     console.error("RICO SETTINGS ERROR:", error);
     res.status(500).json({
@@ -297,6 +304,16 @@ app.post("/api/pair", async (req, res) => {
       });
     }
 
+    if (
+      typeof subs.get !== "function" ||
+      typeof subs.list !== "function" ||
+      typeof subs.addBot !== "function"
+    ) {
+      throw new Error(
+        "مكتبة البوتات لا توفر الدوال المطلوبة: get/list/addBot"
+      );
+    }
+
     const existing = await subs.get(phone);
 
     if (existing) {
@@ -304,7 +321,7 @@ app.post("/api/pair", async (req, res) => {
         success: false,
         message: existing.connected
           ? "هذا الرقم متصل بالفعل."
-          : "توجد جلسة سابقة لهذا الرقم. افصلها أولاً."
+          : "توجد جلسة سابقة لهذا الرقم."
       });
     }
 
@@ -321,10 +338,7 @@ app.post("/api/pair", async (req, res) => {
     const code = await subs.addBot(phone);
 
     if (!code || typeof code !== "string") {
-      return res.status(500).json({
-        success: false,
-        message: "نظام البوتات لم يرجع كود اقتران صالحاً."
-      });
+      throw new Error("لم ترجع مكتبة البوتات كود اقتران صالحاً.");
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -336,15 +350,14 @@ app.post("/api/pair", async (req, res) => {
       token,
       message: "تم تجهيز كود الاقتران."
     });
+
   } catch (error) {
     console.error("RICO PAIR ERROR:", error);
 
-    if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: `فشل التنصيب: ${String(error?.message || "خطأ غير معروف").slice(0, 180)}`
-      });
-    }
+    res.status(500).json({
+      success: false,
+      message: `فشل التنصيب: ${String(error?.message || "خطأ غير معروف").slice(0, 180)}`
+    });
   } finally {
     pending.delete(phone);
   }
@@ -392,7 +405,7 @@ app.post("/api/my/disconnect", async (req, res) => {
 
     const subs = getSubs();
 
-    if (!subs) {
+    if (!subs || typeof subs.remove !== "function") {
       return res.status(503).json({
         success: false,
         message: "نظام البوتات غير متاح."
@@ -415,6 +428,7 @@ app.post("/api/my/disconnect", async (req, res) => {
   }
 });
 
+// الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
