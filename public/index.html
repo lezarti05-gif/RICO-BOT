@@ -1,158 +1,121 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RICO BOT</title>
-
 <style>
 *{box-sizing:border-box}
 body{
-margin:0;
-min-height:100vh;
-font-family:Arial,sans-serif;
-color:#fff;
-background:radial-gradient(circle at top,#123b80,#050b1c 65%);
-display:flex;
-justify-content:center;
-align-items:center;
-padding:20px;
+margin:0;min-height:100vh;padding:20px;
+display:flex;justify-content:center;align-items:center;
+font-family:Arial,sans-serif;color:white;
+background:radial-gradient(circle at top,#12458e,#030817 75%);
 }
 .container{
-width:100%;
-max-width:450px;
-background:#0b1830;
-border:1px solid #1765c7;
-border-radius:22px;
-padding:25px;
+width:100%;max-width:460px;padding:25px;
+background:#0b1830;border:1px solid #168cff;
+border-radius:22px;text-align:center;
 box-shadow:0 0 35px #087bff55;
-text-align:center;
 }
 .logo{
-width:75px;
-height:75px;
-margin:auto;
-display:grid;
-place-items:center;
-background:#087bff22;
+width:70px;height:70px;margin:auto;
+display:grid;place-items:center;
 border:2px solid #168cff;
-clip-path:polygon(50% 0,95% 35%,78% 90%,22% 90%,5% 35%);
-font-size:25px;
-font-weight:bold;
+background:#087bff22;border-radius:18px;
+font-size:30px;font-weight:bold;color:#65baff;
 }
-h1{color:#54aaff;margin-bottom:8px}
-.subtitle{color:#a9c5e9;font-size:14px;line-height:1.8}
+h1{color:#54aaff}
+.subtitle{color:#a9c5e9;line-height:1.9;font-size:14px}
 input{
-width:100%;
-padding:15px;
-margin:18px 0 10px;
-border:1px solid #2679d9;
-border-radius:12px;
-background:#071226;
-color:white;
-font-size:17px;
-text-align:center;
-outline:none;
+width:100%;padding:15px;margin:12px 0;
+border:1px solid #2679d9;border-radius:12px;
+background:#071226;color:white;font-size:16px;
+text-align:center;outline:none;
 }
 button{
-width:100%;
-padding:14px;
-margin-top:10px;
-border:0;
-border-radius:12px;
+width:100%;padding:14px;margin-top:10px;
+border:0;border-radius:12px;
 background:linear-gradient(90deg,#087bff,#1746c5);
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
+color:white;font-size:15px;font-weight:bold;
 }
-button:disabled{opacity:.5}
 .secondary{background:#142c4d;border:1px solid #287bd0}
 .danger{background:#8b2635}
 .panel{
-display:none;
-margin-top:20px;
-padding:18px;
-border:1px solid #2679d9;
-border-radius:14px;
+display:none;margin-top:18px;padding:16px;
+border:1px solid #2679d9;border-radius:14px;
 background:#071226;
 }
 .code{
-font-size:27px;
-letter-spacing:5px;
-color:#61b6ff;
-font-weight:bold;
-padding:15px;
+font-size:27px;letter-spacing:5px;
+color:#61b6ff;font-weight:bold;padding:15px;
 direction:ltr;
 }
-.message{font-size:14px;color:#b7d5fa;margin-top:12px}
+.message{font-size:13px;color:#b7d5fa;line-height:1.8}
 .status{margin-top:15px;color:#7fc2ff}
 .footer{margin-top:25px;font-size:12px;color:#7799c2}
-a{color:#60b5ff;text-decoration:none}
+.hidden{display:none}
 </style>
 </head>
-
 <body>
 <div class="container">
-
 <div class="logo">R</div>
-
 <h1>RICO BOT</h1>
-
 <p class="subtitle">
 مرحبا بك في RICO BOT لتنصيب أرقام واتساب
 <br>
 ادخل رقمك مع رمز الدولة بدون + أو فراغات
 </p>
 
-<input
-id="phone"
-type="tel"
-placeholder="249XXXXXXXXX"
-autocomplete="tel"
->
-
-<button id="installBtn" onclick="requestCode()">
-تنصيب البوت
-</button>
+<input id="phone" type="tel" placeholder="249XXXXXXXXX">
+<button id="installBtn" onclick="requestCode()">تنصيب البوت</button>
 
 <div class="panel" id="result">
 <h3>كود واتساب الخاص بك</h3>
 <div class="code" id="pairCode">--------</div>
-
 <button onclick="copyCode()">نسخ الكود</button>
-
-<p class="message">
-ملاحظة: لا تشارك كود الاقتران مع أي شخص.
-</p>
+<p class="message">ملاحظة: الكود صالح لمدة دقيقتين. لا تشاركه مع أي شخص.</p>
 </div>
 
-<div class="status" id="connection">
-حالة الاتصال: غير متصل
+<div class="status" id="connection">حالة الاتصال: غير متصل</div>
+<button class="secondary" onclick="checkStatus()">تحديث حالة الاتصال</button>
+<button class="danger" onclick="disconnectBot()">قطع الاتصال</button>
+<button class="secondary" onclick="window.open('https://whatsapp.com/channel/0029VbE0UbjKwqSYg0WUxu42','_blank')">قناة المطور</button>
+
+<hr style="border-color:#18385e;margin:25px 0">
+
+<button class="secondary" onclick="showAdmin()">لوحة المطور</button>
+
+<div id="adminLogin" class="panel">
+<h3>دخول المطور</h3>
+<input id="adminPassword" type="password" placeholder="كلمة مرور المطور">
+<button onclick="adminLogin()">دخول</button>
 </div>
 
-<button class="secondary" onclick="checkStatus()">
-تحديث حالة الاتصال
-</button>
+<div id="dashboard" class="panel">
+<h3>لوحة المطور</h3>
+<p id="stats" class="message">اضغط تحديث الإحصائيات.</p>
+<button class="secondary" onclick="loadStats()">تحديث الإحصائيات</button>
 
-<button class="danger" onclick="disconnectBot()">
-قطع الاتصال
-</button>
+<h4>تغيير كلمة المرور</h4>
+<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة">
+<button onclick="changePassword()">حفظ كلمة المرور</button>
 
-<button class="secondary"
-onclick="window.open('https://whatsapp.com/channel/0029Vb8pGX6CRs1tDnkEnC1L','_blank')">
-قناة المطور
-</button>
+<h4>حد التنصيبات</h4>
+<input id="installLimit" type="number" min="1" placeholder="10">
+<button onclick="saveSettings()">حفظ الإعدادات</button>
 
-<div class="footer">
-RICO BOT © 2026
+<p id="adminMessage" class="message"></p>
 </div>
 
+<div class="footer">RICO BOT © 2026</div>
 <p class="message" id="message"></p>
 </div>
 
 <script>
-let currentToken = sessionStorage.getItem("rico_token") || "";
+let currentToken=sessionStorage.getItem("rico_token")||"";
+let adminToken=sessionStorage.getItem("rico_admin")||"";
 
 async function requestCode(){
 const phone=document.getElementById("phone").value.replace(/\D/g,"");
@@ -173,22 +136,15 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({phone})
 });
-
 const data=await response.json();
-
-if(!response.ok||!data.success){
-throw new Error(data.message||"فشل طلب الكود.");
-}
+if(!response.ok||!data.success)throw new Error(data.message||"فشل الطلب.");
 
 currentToken=data.token;
 sessionStorage.setItem("rico_token",currentToken);
-
 document.getElementById("pairCode").textContent=data.code;
 document.getElementById("result").style.display="block";
 message.textContent="تم تجهيز الكود. أكمل الربط من واتساب.";
-
 checkStatus();
-
 }catch(error){
 message.textContent=error.message;
 }finally{
@@ -199,12 +155,11 @@ button.disabled=false;
 async function copyCode(){
 const code=document.getElementById("pairCode").textContent;
 if(!code||code==="--------")return;
-
 try{
 await navigator.clipboard.writeText(code);
 alert("تم نسخ الكود.");
 }catch{
-alert("تعذر نسخ الكود.");
+alert("تعذر النسخ.");
 }
 }
 
@@ -213,50 +168,122 @@ if(!currentToken){
 document.getElementById("connection").textContent="اطلب كود الاقتران أولاً.";
 return;
 }
-
 try{
 const response=await fetch("/api/my/status",{
 headers:{Authorization:"Bearer "+currentToken}
 });
-
 const data=await response.json();
 if(!response.ok)throw new Error(data.message);
-
 document.getElementById("connection").textContent=
 data.connected?"متصل بنجاح ✓":"في انتظار إكمال ربط واتساب...";
 }catch(error){
-document.getElementById("connection").textContent=
-error.message||"تعذر تحديث الحالة.";
+document.getElementById("connection").textContent=error.message;
 }
 }
 
 async function disconnectBot(){
-if(!currentToken){
-alert("لا توجد جلسة مسجلة.");
-return;
-}
-
+if(!currentToken){alert("لا توجد جلسة مسجلة.");return;}
 if(!confirm("هل تريد قطع اتصال رقمك؟"))return;
-
 try{
 const response=await fetch("/api/my/disconnect",{
 method:"POST",
 headers:{Authorization:"Bearer "+currentToken}
 });
-
 const data=await response.json();
 if(!response.ok)throw new Error(data.message);
-
 currentToken="";
 sessionStorage.removeItem("rico_token");
 document.getElementById("result").style.display="none";
 document.getElementById("connection").textContent="غير متصل";
 document.getElementById("message").textContent=data.message;
+}catch(error){alert(error.message);}
+}
 
+function showAdmin(){
+document.getElementById("adminLogin").style.display="block";
+}
+
+async function adminLogin(){
+const password=document.getElementById("adminPassword").value;
+try{
+const response=await fetch("/api/admin/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({password})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.message||"فشل الدخول.");
+adminToken=data.token;
+sessionStorage.setItem("rico_admin",adminToken);
+document.getElementById("adminLogin").style.display="none";
+document.getElementById("dashboard").style.display="block";
+loadStats();
 }catch(error){
-alert(error.message);
+document.getElementById("adminMessage").textContent=error.message;
 }
 }
+
+async function loadStats(){
+try{
+const response=await fetch("/api/admin/stats",{
+headers:{Authorization:"Bearer "+adminToken}
+});
+const data=await response.json();
+if(!response.ok)throw new Error("انتهت جلسة المطور أو الدخول غير صالح.");
+document.getElementById("stats").textContent=
+"إجمالي التنصيبات المسجلة: "+data.totalInstalls+
+" | تنصيبات اليوم: "+data.installsToday+
+" | الجلسات الموجودة: "+data.installed+
+" | المتصلون: "+data.connected+
+" | حد التنصيب: "+data.installLimit+
+" | الصيانة: "+(data.maintenance?"مفعلة":"متوقفة");
+document.getElementById("installLimit").value=data.installLimit;
+}catch(error){
+document.getElementById("adminMessage").textContent=error.message;
+}
+}
+
+async function changePassword(){
+const password=document.getElementById("newPassword").value;
+try{
+const response=await fetch("/api/admin/password",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+adminToken
+},
+body:JSON.stringify({password})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.message||"تعذر تغيير كلمة المرور.");
+document.getElementById("adminMessage").textContent=data.message;
+document.getElementById("newPassword").value="";
+}catch(error){
+document.getElementById("adminMessage").textContent=error.message;
+}
+}
+
+async function saveSettings(){
+const installLimit=Number(document.getElementById("installLimit").value);
+try{
+const response=await fetch("/api/admin/settings",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+adminToken
+},
+body:JSON.stringify({installLimit})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.message||"تعذر حفظ الإعدادات.");
+document.getElementById("adminMessage").textContent="تم حفظ الإعدادات.";
+loadStats();
+}catch(error){
+document.getElementById("adminMessage").textContent=error.message;
+}
+}
+
+if(currentToken)checkStatus();
 </script>
 </body>
-  </html>
+</html>
