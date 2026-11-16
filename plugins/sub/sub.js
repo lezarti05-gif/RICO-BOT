@@ -1,87 +1,124 @@
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const fff = async (m, { conn, text, cli }) => {
-  m.react("🤖")
-  const { subs } = require("../../system/sub.js");
-  if (!subs) return m.reply("Sub system not ready yet");
-  const list = subs.list() || [];
-if (list.length >= 15) {
-  await m.reply("العدد مكتمل");
-  return;
-}
-  let digits = m.jid?.split("@")[0]?.replace(/\D/g, "");
+const handler = async (m, { conn, text, cli }) => {
+  try {
+    const subs = globalThis.subBots;
 
-  if (!digits) {
-    digits = text?.trim().replace(/\D/g, "");
-    if (!digits) return m.reply("❌: غلط انت مش معرفش jid اكتب الرقم احسن عشان تقدر تربطه. مثال: `.تنصيب 2010xxxxxx`");
-  }
-
-  if (subs.get(digits)?.connected) return m.reply(`🍏 الرقم مفعل بوت بالفعل: ${digits}`);
-
-  const code = await subs.addBot(digits);
-  if (!code) return m.reply("Failed to create pairing code");
-const status = {
-  key: {
-    participant: `${m.sender.split('@')[0]}@s.whatsapp.net`,
-    remoteJid: 'status@broadcast',
-    fromMe: false,
-  },
-  message: {
-    contactMessage: {
-      displayName: `${m.pushName || 'User'}`,
-      vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${m.pushName || 'User'}\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nEND:VCARD`,
-    },
-  },
-  participant: "0@s.whatsapp.net",
-}
-
-await conn.buttonV2(m.chat, {
-  text: `
-> نـظـام الـبـوتـات الـفـرعـيـة 💐
-  𑁍 ࣪ ִֶָ𓂃 ─ִ╾ׄ╾ ࣪ 𖹭 ࣪╾ִ╼ִ─ 𓂃ִֶָ ࣪ 𑁍
-📱-- الرقم:  ${digits}
-🔑 -- الكود:  ${code}
-  𑁍 ࣪ ִֶָ𓂃 ─ִ╾ׄ╾ ࣪ 𖹭 ࣪╾ִ╼─ 𓂃ִֶָ ࣪ 𑁍
-الكود ↢ الأجهزة المرتبطة ↢ الربط بكود 
-> ملحوظة الكود بتنتهي صلاحيته بعد 15 ثانية تقريبا 
- ≽^ ˕ • ྀི≼`,
-  footer: "𝐛𝐲 : 𝐕𝐈𝐈𝟕",
-  image: cli.config.info.images[1],
-  contextInfo: cli.config.info.channel,
-  buttons: [
-    {
-      name: "cta_copy",
-      buttonParamsJson: JSON.stringify({
-        display_text: "𝐂𝐨𝐩𝐲",
-        copy_code: code
-      })
+    if (!subs) {
+      return m.reply("❌ نظام البوتات الفرعية غير متاح حالياً.");
     }
-  ],
-  newsletter: {
-    name:  "𝐕𝐈𝐈𝟕 ~ 𝐂𝐡𝐚𝐧𝐧𝐞𝐥 🕷️",
-    jid: "120363225356834044@newsletter"
-  }
-}, { quoted: status });
 
-  for (let i = 0; i < 20; i++) {
-    await sleep(3000);
-    if (subs.get(digits)?.connected) {
-      return conn.linkPreview(m.chat, {
-      text: `✅ — *تـم الاتـصـال بـنـجـاح*\n\n📱 الرقم: ${digits}\n> *البوت جاهز للاستخدام الآن*`,
-      url: image[0], 
-      height: 438,
-      width: 734,
-      title: "𝐑 𝐄 𝐙 𝐄 — 𝐕𝐈𝐈7 🎀 | 𝐁𝐨𝐭 𝐢𝐬 𝐛𝐮𝐢𝐥𝐭 𝐨𝐧 𝐭𝐡𝐞 𝐌𝐄𝐎𝐖𝐒𝐀𝐁 𝐅𝐫𝐚𝐦𝐞𝐰𝐨𝐫𝐤",
-      description: "𝙰 𝚋𝚘𝚝 𝚝𝚘 𝚝𝚎𝚜𝚝 𝚝𝚑𝚎 𝚗𝚎𝚠 𝚏𝚛𝚊𝚖𝚎𝚠𝚘𝚛𝚔"
+    const raw = text?.trim() || m.jid?.split("@")[0] || "";
+    const digits = raw.replace(/\D/g, "");
+
+    if (!digits || digits.length < 8 || digits.length > 15) {
+      return m.reply(
+        "📱 أرسل رقم واتساب مع رمز الدولة بدون + أو مسافات.\n\n" +
+        "مثال:\n.تنصيب 249XXXXXXXXX"
+      );
+    }
+
+    const list = await subs.list();
+    const limit = Number(global.db?.settings?.installLimit) || 10;
+
+    if (list.length >= limit) {
+      return m.reply(`⛔ وصلنا للحد الأقصى للتنصيب (${limit}).`);
+    }
+
+    const existing = await subs.get(digits);
+
+    if (existing?.connected) {
+      return m.reply(`✅ الرقم ${digits} مرتبط بالفعل.`);
+    }
+
+    m.react?.("🤖");
+
+    const code = await subs.addBot(digits);
+
+    if (!code) {
+      return m.reply("❌ تعذر إنشاء كود الاقتران. حاول مرة أخرى.");
+    }
+
+    const images = cli?.config?.info?.images || [];
+    const channel = cli?.config?.info?.channel || {};
+
+    const status = {
+      key: {
+        participant: `${m.sender.split("@")[0]}@s.whatsapp.net`,
+        remoteJid: "status@broadcast",
+        fromMe: false
+      },
+      message: {
+        contactMessage: {
+          displayName: m.pushName || "User",
+          vcard:
+            `BEGIN:VCARD\nVERSION:3.0\nFN:${m.pushName || "User"}\n` +
+            `TEL;waid=${m.sender.split("@")[0]}:${m.sender.split("@")[0]}\nEND:VCARD`
+        }
+      },
+      participant: "0@s.whatsapp.net"
+    };
+
+    await conn.buttonV2(
+      m.chat,
+      {
+        text:
+          `╭━━〔 RICO BOT 〕━━╮\n\n` +
+          `📱 الرقم: ${digits}\n` +
+          `🔑 كود الاقتران: ${code}\n\n` +
+          `افتح واتساب في الهاتف المرتبط بالرقم، ` +
+          `ثم الأجهزة المرتبطة واختر الربط باستخدام رقم الهاتف.\n\n` +
+          `⚠️ لا تشارك كود الاقتران مع أي شخص.\n` +
+          `╰━━━━━━━━━━━━━━╯`,
+        footer: "RICO BOT",
+        image: images[1],
+        contextInfo: channel,
+        buttons: [
+          {
+            name: "cta_copy",
+            buttonParamsJson: JSON.stringify({
+              display_text: "نسخ الكود",
+              copy_code: code
+            })
+          }
+        ]
+      },
+      { quoted: status }
+    );
+
+    for (let i = 0; i < 40; i++) {
+      await sleep(3000);
+
+      const bot = await subs.get(digits);
+
+      if (bot?.connected) {
+        return conn.sendMessage(m.chat, {
+          text:
+            `✅ تم ربط البوت بنجاح!\n\n` +
+            `📱 الرقم: ${digits}\n` +
+            `🤖 البوت جاهز للاستخدام.\n` +
+            `اكتب .اوامر لعرض المميزات.`
+        });
+      }
+    }
+
+    return conn.sendMessage(m.chat, {
+      text:
+        `⏱️ لم يتم تأكيد الاتصال حتى الآن.\n` +
+        `تحقق من حالة الربط وحاول مجدداً إذا انتهت صلاحية الكود.`
     });
-    }
-  }
 
-  await conn.sendMessage(m.chat, { text: "⏱️ Timeout" });
+  } catch (error) {
+    console.error("RICO install error:", error);
+
+    return m.reply(
+      "❌ حصل خطأ أثناء التنصيب.\n" +
+      "راجع سجل الاستضافة لمعرفة السبب."
+    );
+  }
 };
 
-fff.command = ["تنصيب"];
-fff.category = "subbots";
-export default fff;
+handler.command = ["تنصيب"];
+handler.category = "subbots";
+
+export default handler;
