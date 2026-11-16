@@ -1,6 +1,6 @@
 <div align="center">
 
-# Reze Bot 🪻
+# Rico Bot 🪻
 
 <img src="https://raw.githubusercontent.com/MohamedVex/Lora-Upload1/main/uploads/1794253862863.jpg" alt="Reze Bot" width="400"/>
 
