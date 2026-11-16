@@ -1,48 +1,72 @@
+
 import { SubBots } from "meowsab";
 
 export let subs;
+
 let starting = false;
+let startPromise = null;
 
 export async function subBots(client) {
   if (subs) return subs;
 
-  if (starting) {
-    while (starting) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-
-    if (subs) return subs;
+  if (startPromise) {
+    return await startPromise;
   }
 
   starting = true;
 
-  try {
-    const manager = new SubBots({
-      root: "./sub",
-      storage: "auto",
-      code: process.env.SUB_BOT_CODE || "VII71234",
-      main: client,
-      settings: {},
-    });
+  startPromise = (async () => {
+    try {
+      console.log("Starting RICO SubBots...");
 
-    manager.on("ready", (sock) => {
-      console.log("RICO SubBot ready:", sock.user?.id);
-    });
+      const manager = new SubBots({
+        root: "./sub",
+        storage: "auto",
+        code: process.env.SUB_BOT_CODE || "VII71234",
+        main: client,
+        settings: {},
+      });
 
-    await manager.start();
+      manager.on("ready", (sock) => {
+        console.log(
+          "RICO SubBot ready:",
+          sock?.user?.id || "Unknown user"
+        );
+      });
 
-    subs = manager;
-    globalThis.subBots = manager;
+      manager.on("error", (error) => {
+        console.error("RICO SubBot ERROR:", error);
+      });
 
-    console.log("RICO SubBots system started.");
+      await manager.start();
 
-    return subs;
-  } catch (error) {
-    subs = undefined;
-    globalThis.subBots = undefined;
-    console.error("RICO SubBots startup error:", error);
-    throw error;
-  } finally {
-    starting = false;
-  }
+      if (!manager) {
+        throw new Error("SubBots manager was not created.");
+      }
+
+      subs = manager;
+      globalThis.subBots = manager;
+
+      console.log("RICO SubBots system started successfully.");
+
+      return manager;
+
+    } catch (error) {
+      subs = undefined;
+      globalThis.subBots = undefined;
+
+      console.error(
+        "RICO SubBots startup error:",
+        error?.stack || error
+      );
+
+      throw error;
+
+    } finally {
+      starting = false;
+      startPromise = null;
+    }
+  })();
+
+  return await startPromise;
 }
