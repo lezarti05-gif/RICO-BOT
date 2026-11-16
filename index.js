@@ -1,45 +1,35 @@
 import { Client } from "meowsab";
-import { subBots, subs } from "./system/sub.js";
+import { subBots } from "./system/sub.js";
 import "meowsab/safe";
 import "./system/database.js";
 import * as baileys from "baileys";
 import notifications from "./system/notifications.js";
-import path from "node:path";
 
-/* ========== Client Config ======== */
+/* ========== RICO BOT CONFIG ========== */
 
 const client = new Client({
-  // commands
   plugsdir: "plugins",
   prefix: [".", "!"],
 
-  // baileys
   library: [baileys],
 
-  // session
   sessionStorage: {
-    type: "sqlite",          
+    type: "sqlite",
     path: "./session",
   },
 
-  // pairing code
   login: {
     method: "pair",
-    number: "966569688912",
-    code: "REZE1234",
+    number: process.env.BOT_NUMBER || "",
+    code: process.env.BOT_CODE || "",
   },
 
-  // owners
-  owners: [
-    { jid: "966575252858@s.whatsapp.net", lid: "269144427626750@lid" },
-    { jid: "966567158348@s.whatsapp.net", lid: "230919638098013@lid" },
-    { jid: "201066826750@s.whatsapp.net", lid: "247579682029763@lid" },
-    { lid: "1838246064203@lid" },
-    { jid: "201027439894@s.whatsapp.net", lid: "140656605450455@lid" },
-    { username: "T7_14" },  
-  ],
+  owners: process.env.OWNERS
+    ? process.env.OWNERS.split(",").map(number => ({
+        jid: `${number.trim()}@s.whatsapp.net`,
+      }))
+    : [],
 
-  // control settings
   settings: {
     message_owner_only: false,
     private_mode: false,
@@ -49,26 +39,29 @@ const client = new Client({
   },
 });
 
-/* ========== Config Info ======== */
+/* ========== BOT INFO ========== */
 
 const { config } = client;
 
 config.info = {
-  nameBot: "𝐑𝐞𝐳𝐞 𝐁𝐨𝐭",
-  title: "𝐑 𝐄 𝐙 𝐄 — 𝐕𝐈𝐈7 🎀 | 𝐁𝐨𝐭 𝐢𝐬 𝐛𝐮𝐢𝐥𝐭 𝐨𝐧 𝐭𝐡𝐞 𝐌𝐄𝐎𝐖𝐒𝐀𝐁 𝐅𝐫𝐚𝐦𝐞𝐰𝐨𝐫𝐤",
+  nameBot: "RICO BOT",
+  title: "RICO BOT | WhatsApp Bot Platform",
+
   channel: {
     isForwarded: true,
     forwardingScore: 1,
     forwardedNewsletterMessageInfo: {
       newsletterJid: "120363225356834044@newsletter",
-      newsletterName: "𝐔𝐧𝐢𝐨𝐧 ~ 𝐕𝐈𝐈𝟕",
+      newsletterName: "RICO BOT",
       serverMessageId: 0,
     },
   },
+
   newsletter: {
-    name: "𝐔𝐧𝐢𝐨𝐧 ~ 𝐕𝐈𝐈𝟕",
+    name: "RICO BOT",
     jid: "120363225356834044@newsletter",
   },
+
   images: [
     "https://raw.githubusercontent.com/MohamedVex/Lora-Upload1/main/uploads/1791910619812.jpg",
     "https://raw.githubusercontent.com/MohamedVex/Lora-Upload1/main/uploads/1791910652175.jpg",
@@ -77,36 +70,34 @@ config.info = {
   ],
 };
 
-/* ========== Send the error to owner ======== */
+/* ========== ERROR HANDLING ========== */
 
-const conn = client.sock;
-const owner = client.owners?.[0]?.jid;
-
-client.on("error", async (err) => {
-  if (!conn || !owner) return;
-
-  const errorText = String(err?.stack || err?.message || err).slice(0, 3500);
-
-  try {
-    await conn.sendMessage(owner, { text: errorText });
-  } catch (e) {
-    console.error("Failed to send error:", e);
-  }
+client.on("error", (err) => {
+  console.error("RICO BOT ERROR:", err);
 });
 
-/* ========== Notification ======== */
+/* ========== NOTIFICATIONS ========== */
 
 const plugins = client.plug();
 plugins.notification(notifications);
 
-/* ========== Starting ======== */
+/* ========== START ========== */
 
-const start = async () => {
-  await client.connect();
-  await subBots(client);
-  await subs.start();
-};
+async function start() {
+  try {
+    console.log("Starting RICO BOT...");
 
-start().catch((err) => {
-  console.error("❌ Startup error:", err.message);
-});
+    await client.connect();
+    console.log("Main bot started.");
+
+    await subBots(client);
+    console.log("SubBots system started.");
+
+    console.log("RICO BOT is ready.");
+  } catch (error) {
+    console.error("Startup error:", error);
+    process.exitCode = 1;
+  }
+}
+
+start();
