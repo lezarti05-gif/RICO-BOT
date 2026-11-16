@@ -1,59 +1,53 @@
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-  renameSync
-} from "node:fs";
 
-import path from "node:path";
+import pg from "pg";
 
-const DB_DIR = "./system";
-const DB_FILE = path.join(DB_DIR, "database.json");
-const TEMP_FILE = path.join(DB_DIR, "database.tmp");
+const { Pool } = pg;
 
-if (!existsSync(DB_DIR)) {
-  mkdirSync(DB_DIR, { recursive: true });
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error("RICO: DATABASE_URL غير موجود في Environment.");
 }
 
-if (!existsSync(DB_FILE)) {
-  writeFileSync(DB_FILE, JSON.stringify({}, null, 2));
-}
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-let database;
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS rico_state (
+    id INTEGER PRIMARY KEY,
+    data JSONB NOT NULL DEFAULT '{}'::jsonb
+  )
+`);
 
-try {
-  database = JSON.parse(readFileSync(DB_FILE, "utf8"));
-} catch (error) {
-  console.error("RICO DATABASE ERROR:", error);
-  throw new Error("تعذر قراءة قاعدة البيانات. احتفظ بنسخة احتياطية وافحص database.json.");
-}
+const result = await pool.query(
+  "SELECT data FROM rico_state WHERE id = 1"
+);
 
-if (!database || typeof database !== "object" || Array.isArray(database)) {
-  throw new Error("صيغة قاعدة البيانات غير صحيحة.");
-}
+const database = result.rows[0]?.data || {};
 
 global.db = database;
-
-// الإعدادات الافتراضية مع الحفاظ على الإعدادات القديمة
 global.db.settings ||= {};
 global.db.settings.installLimit ??= 10;
 
-// حفظ آمن للبيانات
-global.saveDB = () => {
-  try {
-    writeFileSync(
-      TEMP_FILE,
-      JSON.stringify(global.db, null, 2),
-      "utf8"
-    );
+let saveQueue = Promise.resolve();
 
-    renameSync(TEMP_FILE, DB_FILE);
+global.saveDB = () => {
+  const snapshot = JSON.stringify(global.db);
+
+  saveQueue = saveQueue.then(async () => {
+    await pool.query(
+      `INSERT INTO rico_state (id, data)
+       VALUES (1, $1::jsonb)
+       ON CONFLICT (id)
+       DO UPDATE SET data = EXCLUDED.data`,
+      [snapshot]
+    );
     return true;
-  } catch (error) {
-    console.error("RICO DATABASE SAVE ERROR:", error);
-    return false;
-  }
+  });
+
+  return saveQueue;
 };
 
-console.log("RICO Database loaded successfully.");
+console.log("RICO PostgreSQL database connected.");
