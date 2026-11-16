@@ -1,4 +1,4 @@
-import "./server.js";
+import { startWebServer } from "./server.js";
 
 import { Client } from "meowsab";
 import { subBots } from "./system/sub.js";
@@ -94,6 +94,9 @@ async function start() {
 
     await subBots(client);
     console.log("SubBots system started.");
+
+    await startWebServer();
+    console.log("RICO Web Platform started.");
 
     console.log("RICO BOT is ready.");
   } catch (error) {
