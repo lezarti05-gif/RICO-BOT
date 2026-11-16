@@ -9,13 +9,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.static(path.join(__dirname, "public")));
-
 app.set("trust proxy", 1);
 
-// رموز وصول مؤقتة تربط المتصفح برقمه
 const sessions = new Map();
 const requests = new Map();
 const pending = new Set();
+
+let webServer;
 
 function getSubs() {
   return globalThis.subBots;
@@ -27,8 +27,8 @@ function validPhone(phone) {
 
 function rateLimit(ip) {
   const now = Date.now();
-  const old = requests.get(ip) || [];
-  const recent = old.filter(t => now - t < 10 * 60 * 1000);
+  const recent = (requests.get(ip) || [])
+    .filter(time => now - time < 10 * 60 * 1000);
 
   if (recent.length >= 3) return false;
 
@@ -37,13 +37,13 @@ function rateLimit(ip) {
   return true;
 }
 
-function getSession(req) {
+function getToken(req) {
   const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ")
-    ? header.slice(7)
-    : "";
+  return header.startsWith("Bearer ") ? header.slice(7) : "";
+}
 
-  return sessions.get(token);
+function getPhone(req) {
+  return sessions.get(getToken(req));
 }
 
 app.get("/api/status", (req, res) => {
@@ -54,7 +54,7 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// طلب كود الاقتران
+// إنشاء كود الاقتران
 app.post("/api/pair", async (req, res) => {
   const phone = String(req.body?.phone || "").replace(/\D/g, "");
 
@@ -107,7 +107,7 @@ app.post("/api/pair", async (req, res) => {
       });
     }
 
-    // استخدم الخدمة لرقمك أو رقم صاحبه وافق على الربط فقط
+    // يجب أن يكون الرقم ملكك أو لديك موافقة صاحبه.
     const code = await subs.addBot(phone);
 
     if (!code || typeof code !== "string") {
@@ -118,10 +118,9 @@ app.post("/api/pair", async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-
-    // لا نخزن كود الاقتران في قاعدة البيانات أو السجلات
     sessions.set(token, phone);
 
+    // يرجع الكود لصاحب هذا الطلب فقط.
     return res.json({
       success: true,
       code,
@@ -130,7 +129,7 @@ app.post("/api/pair", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Pairing request failed:", error.message);
+    console.error("RICO PAIR ERROR:", error.message);
 
     return res.status(500).json({
       success: false,
@@ -141,39 +140,39 @@ app.post("/api/pair", async (req, res) => {
   }
 });
 
-// حالة رقم صاحب رمز الوصول فقط
+// حالة الاتصال
 app.get("/api/my/status", async (req, res) => {
-  const phone = getSession(req);
+  const phone = getPhone(req);
 
   if (!phone) {
     return res.status(401).json({
       success: false,
-      message: "انتهت صلاحية الجلسة."
+      message: "الجلسة غير صالحة."
     });
   }
 
   try {
-    const bot = await getSubs()?.get(phone);
+    const subs = getSubs();
+    const bot = await subs?.get(phone);
 
     return res.json({
       success: true,
       connected: Boolean(bot?.connected)
     });
-  } catch {
+
+  } catch (error) {
+    console.error("RICO STATUS ERROR:", error.message);
+
     return res.status(500).json({
       success: false,
-      message: "تعذر جلب الحالة."
+      message: "تعذر جلب حالة الاتصال."
     });
   }
 });
 
-// فصل جلسة صاحب رمز الوصول فقط
+// قطع الاتصال
 app.post("/api/my/disconnect", async (req, res) => {
-  const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ")
-    ? header.slice(7)
-    : "";
-
+  const token = getToken(req);
   const phone = sessions.get(token);
 
   if (!phone) {
@@ -184,19 +183,29 @@ app.post("/api/my/disconnect", async (req, res) => {
   }
 
   try {
-    await getSubs().remove(phone);
+    const subs = getSubs();
+
+    if (!subs) {
+      return res.status(503).json({
+        success: false,
+        message: "نظام البوتات غير متاح."
+      });
+    }
+
+    await subs.remove(phone);
     sessions.delete(token);
 
     return res.json({
       success: true,
       message: "تم فصل الجلسة."
     });
+
   } catch (error) {
-    console.error("Disconnect failed:", error.message);
+    console.error("RICO DISCONNECT ERROR:", error.message);
 
     return res.status(500).json({
       success: false,
-      message: "تعذر فصل الجلسة."
+      message: "تعذر فصل الاتصال."
     });
   }
 });
@@ -206,12 +215,15 @@ app.get("/", (req, res) => {
 });
 
 export function startWebServer() {
+  if (webServer) return Promise.resolve(webServer);
+
   return new Promise((resolve, reject) => {
     const server = app.listen(PORT, "0.0.0.0", () => {
+      webServer = server;
       console.log(`RICO BOT running on port ${PORT}`);
       resolve(server);
     });
 
     server.once("error", reject);
   });
-}
+    }
