@@ -1,4 +1,4 @@
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const handler = async (m, { conn, text, cli }) => {
   try {
@@ -8,10 +8,10 @@ const handler = async (m, { conn, text, cli }) => {
       return m.reply("❌ نظام البوتات الفرعية غير متاح حالياً.");
     }
 
-    const raw = text?.trim() || m.jid?.split("@")[0] || "";
+    const raw = text?.trim() || "";
     const digits = raw.replace(/\D/g, "");
 
-    if (!digits || digits.length < 8 || digits.length > 15) {
+    if (!/^\d{8,15}$/.test(digits)) {
       return m.reply(
         "📱 أرسل رقم واتساب مع رمز الدولة بدون + أو مسافات.\n\n" +
         "مثال:\n.تنصيب 249XXXXXXXXX"
@@ -19,7 +19,7 @@ const handler = async (m, { conn, text, cli }) => {
     }
 
     const list = await subs.list();
-    const limit = Number(global.db?.settings?.installLimit) || 10;
+    const limit = Number(global.db?.settings?.installLimit ?? 10);
 
     if (list.length >= limit) {
       return m.reply(`⛔ وصلنا للحد الأقصى للتنصيب (${limit}).`);
@@ -27,24 +27,30 @@ const handler = async (m, { conn, text, cli }) => {
 
     const existing = await subs.get(digits);
 
-    if (existing?.connected) {
-      return m.reply(`✅ الرقم ${digits} مرتبط بالفعل.`);
+    if (existing) {
+      return m.reply(
+        existing.connected
+          ? `✅ الرقم ${digits} مرتبط بالفعل.`
+          : `⚠️ توجد جلسة سابقة للرقم ${digits}. افحصها أو افصلها أولاً.`
+      );
     }
 
     m.react?.("🤖");
 
     const code = await subs.addBot(digits);
 
-    if (!code) {
-      return m.reply("❌ تعذر إنشاء كود الاقتران. حاول مرة أخرى.");
+    if (!code || typeof code !== "string") {
+      return m.reply("❌ تعذر إنشاء كود الاقتران.");
     }
 
     const images = cli?.config?.info?.images || [];
     const channel = cli?.config?.info?.channel || {};
 
+    const senderNumber = m.sender?.split("@")[0] || "";
+
     const status = {
       key: {
-        participant: `${m.sender.split("@")[0]}@s.whatsapp.net`,
+        participant: `${senderNumber}@s.whatsapp.net`,
         remoteJid: "status@broadcast",
         fromMe: false
       },
@@ -53,7 +59,7 @@ const handler = async (m, { conn, text, cli }) => {
           displayName: m.pushName || "User",
           vcard:
             `BEGIN:VCARD\nVERSION:3.0\nFN:${m.pushName || "User"}\n` +
-            `TEL;waid=${m.sender.split("@")[0]}:${m.sender.split("@")[0]}\nEND:VCARD`
+            `TEL;waid=${senderNumber}:${senderNumber}\nEND:VCARD`
         }
       },
       participant: "0@s.whatsapp.net"
@@ -112,8 +118,7 @@ const handler = async (m, { conn, text, cli }) => {
     console.error("RICO install error:", error);
 
     return m.reply(
-      "❌ حصل خطأ أثناء التنصيب.\n" +
-      "راجع سجل الاستضافة لمعرفة السبب."
+      "❌ حصل خطأ أثناء التنصيب.\nراجع سجل الاستضافة."
     );
   }
 };
