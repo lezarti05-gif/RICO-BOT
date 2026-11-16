@@ -1,6 +1,7 @@
+
 {
   "name": "rico-bot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "RICO BOT WhatsApp Platform",
   "license": "ISC",
   "type": "module",
@@ -20,6 +21,7 @@
     "qs": "^6.16.1",
     "sharp": "^0.35.5",
     "undici": "^8.12.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
   }
 }
