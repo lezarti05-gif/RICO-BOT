@@ -20,14 +20,29 @@ const adminSessions = new Map();
 let webServer;
 
 const getSubs = () => globalThis.subBots;
-const getToken = req => {
+
+function getToken(req) {
   const header = req.headers.authorization || "";
   return header.startsWith("Bearer ") ? header.slice(7) : "";
-};
-const getPhone = req => sessions.get(getToken(req));
+}
+
+function getPhone(req) {
+  return sessions.get(getToken(req));
+}
 
 function validPhone(phone) {
   return /^\d{8,15}$/.test(phone);
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function save() {
+  if (typeof global.saveDB !== "function") {
+    throw new Error("Database save function is unavailable");
+  }
+  return global.saveDB();
 }
 
 function rateLimit(ip) {
@@ -42,7 +57,7 @@ function rateLimit(ip) {
   return true;
 }
 
-function admin(req) {
+function isAdmin(req) {
   const token = getToken(req);
   const expiry = adminSessions.get(token);
 
@@ -54,166 +69,200 @@ function admin(req) {
   return true;
 }
 
-function save() {
-  return global.saveDB?.() ?? Promise.resolve(false);
-}
+// كل الأخطاء ترجع JSON
+app.use((err, req, res, next) => {
+  console.error("RICO EXPRESS ERROR:", err);
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
+  if (res.headersSent) return next(err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.status === 400
+      ? "بيانات الطلب غير صحيحة."
+      : "حدث خطأ داخل الخادم."
+  });
+});
 
 app.get("/api/status", (req, res) => {
   res.json({
     success: true,
     name: "RICO BOT",
-    status: "running"
+    status: "running",
+    subBotsReady: Boolean(getSubs())
   });
 });
 
-// تسجيل الدخول الأولي للمطور
+// دخول المطور
 app.post("/api/admin/login", async (req, res) => {
-  const password = String(req.body?.password || "");
-  const savedHash = global.db.admin?.passwordHash;
-  const initial = process.env.RICO_ADMIN_INITIAL_PASSWORD;
+  try {
+    const password = String(req.body?.password || "");
+    const savedHash = global.db?.admin?.passwordHash;
+    const initial = process.env.RICO_ADMIN_INITIAL_PASSWORD;
 
-  if (!savedHash && !initial) {
-    return res.status(503).json({
+    if (!savedHash && !initial) {
+      return res.status(503).json({
+        success: false,
+        message: "أضف كلمة المرور الأولية في إعدادات Render."
+      });
+    }
+
+    const hash = crypto.createHash("sha256")
+      .update(password)
+      .digest("hex");
+
+    const valid = savedHash ? hash === savedHash : password === initial;
+
+    if (!valid) {
+      return res.status(401).json({
+        success: false,
+        message: "كلمة المرور غير صحيحة."
+      });
+    }
+
+    if (!savedHash) {
+      global.db.admin = {
+        passwordHash: hash,
+        createdAt: new Date().toISOString()
+      };
+      await save();
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    adminSessions.set(token, Date.now() + 12 * 60 * 60 * 1000);
+
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error("RICO ADMIN LOGIN:", error);
+    res.status(500).json({
       success: false,
-      message: "أضف RICO_ADMIN_INITIAL_PASSWORD في إعدادات Render."
+      message: "تعذر تسجيل الدخول."
     });
   }
+});
 
-  let valid = false;
+// تغيير كلمة المرور
+app.post("/api/admin/password", async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(401).json({
+        success: false,
+        message: "سجّل دخول المطور أولاً."
+      });
+    }
 
-  if (savedHash) {
-    const hash = crypto
+    const password = String(req.body?.password || "");
+
+    if (password.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: "كلمة المرور يجب أن تكون 10 أحرف على الأقل."
+      });
+    }
+
+    global.db.admin.passwordHash = crypto
       .createHash("sha256")
       .update(password)
       .digest("hex");
 
-    valid = hash === savedHash;
-  } else {
-    valid = password === initial;
-  }
-
-  if (!valid) {
-    return res.status(401).json({
-      success: false,
-      message: "كلمة المرور غير صحيحة."
-    });
-  }
-
-  if (!savedHash) {
-    global.db.admin = {
-      passwordHash: crypto.createHash("sha256")
-        .update(password)
-        .digest("hex"),
-      createdAt: new Date().toISOString()
-    };
     await save();
-  }
 
-  const token = crypto.randomBytes(32).toString("hex");
-  adminSessions.set(token, Date.now() + 12 * 60 * 60 * 1000);
-
-  res.json({ success: true, token });
-});
-
-// تغيير كلمة مرور المطور
-app.post("/api/admin/password", async (req, res) => {
-  if (!admin(req)) {
-    return res.status(401).json({ success: false });
-  }
-
-  const password = String(req.body?.password || "");
-
-  if (password.length < 10) {
-    return res.status(400).json({
+    res.json({
+      success: true,
+      message: "تم تغيير كلمة المرور."
+    });
+  } catch (error) {
+    console.error("RICO PASSWORD ERROR:", error);
+    res.status(500).json({
       success: false,
-      message: "كلمة المرور يجب أن تكون 10 أحرف على الأقل."
+      message: "تعذر حفظ كلمة المرور."
     });
   }
-
-  global.db.admin.passwordHash = crypto
-    .createHash("sha256")
-    .update(password)
-    .digest("hex");
-
-  await save();
-
-  res.json({
-    success: true,
-    message: "تم تغيير كلمة المرور."
-  });
 });
 
-// إحصائيات لوحة المطور
+// إحصائيات المطور
 app.get("/api/admin/stats", async (req, res) => {
-  if (!admin(req)) {
-    return res.status(401).json({ success: false });
-  }
-
-  const stats = global.db.stats || {};
-  const subs = getSubs();
-  let connected = 0;
-  let installed = 0;
-
   try {
-    const list = await subs?.list?.() || [];
-    installed = list.length;
-    connected = list.filter(bot => bot?.connected).length;
+    if (!isAdmin(req)) {
+      return res.status(401).json({
+        success: false,
+        message: "جلسة المطور غير صالحة."
+      });
+    }
+
+    const stats = global.db?.stats || {};
+    let list = [];
+
+    try {
+      list = await getSubs()?.list?.() || [];
+    } catch (error) {
+      console.error("RICO SUB LIST ERROR:", error);
+    }
+
+    res.json({
+      success: true,
+      totalInstalls: stats.totalInstalls || 0,
+      installsToday: stats.installsByDay?.[today()] || 0,
+      installed: list.length,
+      connected: list.filter(bot => bot?.connected).length,
+      installLimit: global.db?.settings?.installLimit ?? 10,
+      maintenance: Boolean(global.db?.settings?.maintenance)
+    });
   } catch (error) {
     console.error("RICO STATS ERROR:", error);
-  }
-
-  res.json({
-    success: true,
-    totalInstalls: stats.totalInstalls || 0,
-    installsToday: stats.installsByDay?.[today()] || 0,
-    installed,
-    connected,
-    installLimit: global.db.settings?.installLimit ?? 10,
-    maintenance: Boolean(global.db.settings?.maintenance)
-  });
-});
-
-// تعديل حد التنصيب
-app.post("/api/admin/settings", async (req, res) => {
-  if (!admin(req)) {
-    return res.status(401).json({ success: false });
-  }
-
-  const limit = Number(req.body?.installLimit);
-
-  if (!Number.isInteger(limit) || limit < 1 || limit > 10000) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message: "حد التنصيب غير صحيح."
+      message: "تعذر جلب الإحصائيات."
     });
   }
-
-  global.db.settings ||= {};
-  global.db.settings.installLimit = limit;
-
-  if (typeof req.body.maintenance === "boolean") {
-    global.db.settings.maintenance = req.body.maintenance;
-  }
-
-  await save();
-
-  res.json({ success: true });
 });
 
-// إنشاء كود الاقتران
+// إعدادات المطور
+app.post("/api/admin/settings", async (req, res) => {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(401).json({
+        success: false,
+        message: "جلسة المطور غير صالحة."
+      });
+    }
+
+    const limit = Number(req.body?.installLimit);
+
+    if (!Number.isInteger(limit) || limit < 1 || limit > 10000) {
+      return res.status(400).json({
+        success: false,
+        message: "حد التنصيب غير صحيح."
+      });
+    }
+
+    global.db.settings ||= {};
+    global.db.settings.installLimit = limit;
+
+    if (typeof req.body.maintenance === "boolean") {
+      global.db.settings.maintenance = req.body.maintenance;
+    }
+
+    await save();
+    res.json({ success: true, message: "تم حفظ الإعدادات." });
+  } catch (error) {
+    console.error("RICO SETTINGS ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "تعذر حفظ الإعدادات."
+    });
+  }
+});
+
+// طلب الاقتران
 app.post("/api/pair", async (req, res) => {
-  if (global.db.settings?.maintenance) {
+  const phone = String(req.body?.phone || "").replace(/\D/g, "");
+
+  if (global.db?.settings?.maintenance) {
     return res.status(503).json({
       success: false,
       message: "المنصة تحت الصيانة حالياً."
     });
   }
-
-  const phone = String(req.body?.phone || "").replace(/\D/g, "");
 
   if (!validPhone(phone)) {
     return res.status(400).json({
@@ -229,15 +278,6 @@ app.post("/api/pair", async (req, res) => {
     });
   }
 
-  const subs = getSubs();
-
-  if (!subs) {
-    return res.status(503).json({
-      success: false,
-      message: "نظام البوتات الفرعية لم يبدأ بعد."
-    });
-  }
-
   if (pending.has(phone)) {
     return res.status(409).json({
       success: false,
@@ -248,6 +288,15 @@ app.post("/api/pair", async (req, res) => {
   pending.add(phone);
 
   try {
+    const subs = getSubs();
+
+    if (!subs) {
+      return res.status(503).json({
+        success: false,
+        message: "نظام البوتات الفرعية لم يبدأ. تحقق من تشغيله."
+      });
+    }
+
     const existing = await subs.get(phone);
 
     if (existing) {
@@ -255,12 +304,12 @@ app.post("/api/pair", async (req, res) => {
         success: false,
         message: existing.connected
           ? "هذا الرقم متصل بالفعل."
-          : "توجد جلسة سابقة لهذا الرقم."
+          : "توجد جلسة سابقة لهذا الرقم. افصلها أولاً."
       });
     }
 
     const list = await subs.list();
-    const limit = Number(global.db.settings?.installLimit ?? 10);
+    const limit = Number(global.db?.settings?.installLimit ?? 10);
 
     if (list.length >= limit) {
       return res.status(403).json({
@@ -274,27 +323,28 @@ app.post("/api/pair", async (req, res) => {
     if (!code || typeof code !== "string") {
       return res.status(500).json({
         success: false,
-        message: "لم يتم إنشاء كود الاقتران."
+        message: "نظام البوتات لم يرجع كود اقتران صالحاً."
       });
     }
 
     const token = crypto.randomBytes(32).toString("hex");
     sessions.set(token, phone);
 
-    return res.json({
+    res.json({
       success: true,
       code,
       token,
       message: "تم تجهيز كود الاقتران."
     });
-
   } catch (error) {
     console.error("RICO PAIR ERROR:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "تعذر تجهيز كود الاقتران."
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: `فشل التنصيب: ${String(error?.message || "خطأ غير معروف").slice(0, 180)}`
+      });
+    }
   } finally {
     pending.delete(phone);
   }
@@ -302,23 +352,24 @@ app.post("/api/pair", async (req, res) => {
 
 // حالة الاتصال
 app.get("/api/my/status", async (req, res) => {
-  const phone = getPhone(req);
-
-  if (!phone) {
-    return res.status(401).json({
-      success: false,
-      message: "الجلسة غير صالحة."
-    });
-  }
-
   try {
+    const phone = getPhone(req);
+
+    if (!phone) {
+      return res.status(401).json({
+        success: false,
+        message: "الجلسة غير صالحة."
+      });
+    }
+
     const bot = await getSubs()?.get(phone);
 
     res.json({
       success: true,
       connected: Boolean(bot?.connected)
     });
-  } catch {
+  } catch (error) {
+    console.error("RICO STATUS ERROR:", error);
     res.status(500).json({
       success: false,
       message: "تعذر جلب حالة الاتصال."
@@ -328,25 +379,35 @@ app.get("/api/my/status", async (req, res) => {
 
 // قطع الاتصال
 app.post("/api/my/disconnect", async (req, res) => {
-  const token = getToken(req);
-  const phone = sessions.get(token);
-
-  if (!phone) {
-    return res.status(401).json({
-      success: false,
-      message: "الجلسة غير صالحة."
-    });
-  }
-
   try {
-    await getSubs().remove(phone);
+    const token = getToken(req);
+    const phone = sessions.get(token);
+
+    if (!phone) {
+      return res.status(401).json({
+        success: false,
+        message: "الجلسة غير صالحة."
+      });
+    }
+
+    const subs = getSubs();
+
+    if (!subs) {
+      return res.status(503).json({
+        success: false,
+        message: "نظام البوتات غير متاح."
+      });
+    }
+
+    await subs.remove(phone);
     sessions.delete(token);
 
     res.json({
       success: true,
       message: "تم فصل الجلسة."
     });
-  } catch {
+  } catch (error) {
+    console.error("RICO DISCONNECT ERROR:", error);
     res.status(500).json({
       success: false,
       message: "تعذر فصل الاتصال."
