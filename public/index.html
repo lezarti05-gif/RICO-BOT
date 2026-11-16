@@ -4,118 +4,265 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RICO BOT</title>
+<meta name="theme-color" content="#050b1c">
+<title>RICO BOT | WhatsApp Platform</title>
+
 <style>
 *{box-sizing:border-box}
+:root{
+--blue:#168cff;
+--cyan:#54d5ff;
+--bg:#040817;
+--card:#0b1630;
+--muted:#9bb5d8;
+}
 body{
-margin:0;min-height:100vh;padding:20px;
+margin:0;min-height:100vh;padding:25px 15px;
+font-family:Arial,sans-serif;color:#fff;
+background:
+radial-gradient(ellipse at 50% 0%,#123d78 0%,transparent 48%),
+radial-gradient(circle at 0% 80%,#092d60 0%,transparent 35%),
+var(--bg);
 display:flex;justify-content:center;align-items:center;
-font-family:Arial,sans-serif;color:white;
-background:radial-gradient(circle at top,#12458e,#030817 75%);
+overflow-x:hidden;
+}
+body:before,body:after{
+content:"";position:fixed;width:230px;height:230px;
+border:1px solid #168cff33;border-radius:50%;
+box-shadow:0 0 50px #087bff22;
+pointer-events:none;animation:float 7s ease-in-out infinite alternate;
+}
+body:before{top:-100px;right:-100px}
+body:after{bottom:-120px;left:-100px;animation-delay:2s}
+@keyframes float{
+from{transform:translateY(0) rotate(0)}
+to{transform:translateY(25px) rotate(25deg)}
 }
 .container{
-width:100%;max-width:460px;padding:25px;
-background:#0b1830;border:1px solid #168cff;
-border-radius:22px;text-align:center;
-box-shadow:0 0 35px #087bff55;
+width:100%;max-width:470px;position:relative;
+padding:27px 22px;
+background:linear-gradient(145deg,#101e3c,#071226);
+border:1px solid #218cff66;border-radius:25px;
+box-shadow:0 0 45px #087bff22, inset 0 0 25px #168cff08;
+}
+.topline{
+display:flex;justify-content:space-between;align-items:center;
+margin-bottom:25px;color:#9fcaff;font-size:12px;
+}
+.live{display:flex;align-items:center;gap:7px}
+.dot{
+width:8px;height:8px;border-radius:50%;background:#30e6a0;
+box-shadow:0 0 12px #30e6a0;
 }
 .logo{
-width:70px;height:70px;margin:auto;
+width:83px;height:83px;margin:auto;
 display:grid;place-items:center;
-border:2px solid #168cff;
-background:#087bff22;border-radius:18px;
-font-size:30px;font-weight:bold;color:#65baff;
+border-radius:24px;
+background:linear-gradient(145deg,#168cff33,#071226);
+border:2px solid #39aaff;
+box-shadow:0 0 30px #168cff66,inset 0 0 20px #168cff22;
+font-size:43px;font-weight:900;color:#70caff;
+text-shadow:0 0 20px #168cff;
 }
-h1{color:#54aaff}
-.subtitle{color:#a9c5e9;line-height:1.9;font-size:14px}
+h1{
+text-align:center;margin:18px 0 5px;
+font-size:29px;letter-spacing:3px;color:#62baff;
+text-shadow:0 0 20px #168cff77;
+}
+.subtitle{
+text-align:center;color:var(--muted);
+font-size:13px;line-height:2;margin:8px 0 23px;
+}
+.section-title{
+text-align:right;font-size:13px;color:#75bdff;
+margin-bottom:9px;
+}
 input{
-width:100%;padding:15px;margin:12px 0;
-border:1px solid #2679d9;border-radius:12px;
-background:#071226;color:white;font-size:16px;
-text-align:center;outline:none;
+width:100%;padding:16px;margin:7px 0;
+border:1px solid #287bd9;border-radius:13px;
+background:#050e20;color:white;font-size:16px;
+text-align:center;outline:none;transition:.2s;
+}
+input:focus{
+border-color:#55c5ff;
+box-shadow:0 0 17px #168cff44;
 }
 button{
-width:100%;padding:14px;margin-top:10px;
-border:0;border-radius:12px;
-background:linear-gradient(90deg,#087bff,#1746c5);
-color:white;font-size:15px;font-weight:bold;
+width:100%;padding:15px;margin-top:10px;
+border:1px solid #329dff55;border-radius:13px;
+background:linear-gradient(100deg,#087bff,#1748c7);
+color:white;font-size:14px;font-weight:bold;
+cursor:pointer;transition:.2s;
+box-shadow:0 5px 20px #087bff22;
 }
-.secondary{background:#142c4d;border:1px solid #287bd0}
-.danger{background:#8b2635}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.55;cursor:wait}
+.secondary{
+background:#102747;border:1px solid #287bd0;
+box-shadow:none;
+}
+.danger{
+background:#451b32;border:1px solid #a83d61;
+box-shadow:none;
+}
 .panel{
-display:none;margin-top:18px;padding:16px;
-border:1px solid #2679d9;border-radius:14px;
-background:#071226;
+display:none;margin-top:18px;padding:17px;
+border:1px solid #287bd0;border-radius:17px;
+background:#061126;
+box-shadow:inset 0 0 25px #168cff0b;
 }
+.panel h3,.panel h4{color:#71bdff;margin-top:5px}
 .code{
-font-size:27px;letter-spacing:5px;
-color:#61b6ff;font-weight:bold;padding:15px;
-direction:ltr;
+font-size:29px;letter-spacing:5px;
+color:#72c8ff;font-weight:bold;padding:18px 5px;
+direction:ltr;text-shadow:0 0 17px #168cff;
 }
-.message{font-size:13px;color:#b7d5fa;line-height:1.8}
-.status{margin-top:15px;color:#7fc2ff}
-.footer{margin-top:25px;font-size:12px;color:#7799c2}
-.hidden{display:none}
+.message{
+font-size:13px;color:#b7d5fa;line-height:1.9;
+}
+.status{
+margin:17px 0;padding:13px;
+border:1px solid #1b4777;border-radius:12px;
+background:#07162d;color:#9dd0ff;
+font-size:13px;
+}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.actions button{margin:0}
+.divider{
+height:1px;background:linear-gradient(90deg,transparent,#287bd0,transparent);
+margin:25px 0;
+}
+.footer{
+margin-top:25px;text-align:center;
+font-size:11px;color:#718db4;
+}
+#message,#adminMessage{min-height:20px;text-align:center}
+.small{font-size:11px;color:#7898c0}
 </style>
 </head>
+
 <body>
-<div class="container">
+<main class="container">
+
+<div class="topline">
+<span>RICO PLATFORM</span>
+<span class="live"><span class="dot"></span> نظام المنصة</span>
+</div>
+
 <div class="logo">R</div>
+
 <h1>RICO BOT</h1>
+
 <p class="subtitle">
-مرحبا بك في RICO BOT لتنصيب أرقام واتساب
+مرحباً بك في منصة RICO BOT لتنصيب أرقام واتساب
 <br>
-ادخل رقمك مع رمز الدولة بدون + أو فراغات
+اربط رقمك واستمتع بمميزات البوت الخاص بك
 </p>
 
-<input id="phone" type="tel" placeholder="249XXXXXXXXX">
-<button id="installBtn" onclick="requestCode()">تنصيب البوت</button>
+<div class="section-title">رقم واتساب الخاص بك</div>
+
+<input id="phone" type="tel"
+placeholder="249XXXXXXXXX"
+inputmode="numeric"
+autocomplete="tel"
+>
+
+<p class="small">أدخل الرقم مع رمز الدولة بدون + أو فراغات</p>
+
+<button id="installBtn" onclick="requestCode()">
+⚡ تنصيب البوت الآن
+</button>
 
 <div class="panel" id="result">
 <h3>كود واتساب الخاص بك</h3>
 <div class="code" id="pairCode">--------</div>
-<button onclick="copyCode()">نسخ الكود</button>
-<p class="message">ملاحظة: الكود صالح لمدة دقيقتين. لا تشاركه مع أي شخص.</p>
+<button onclick="copyCode()">نسخ كود الاقتران</button>
+<p class="message">
+ملاحظة: الكود صالح لمدة دقيقتين.
+لا تشاركه مع أي شخص.
+</p>
 </div>
 
-<div class="status" id="connection">حالة الاتصال: غير متصل</div>
-<button class="secondary" onclick="checkStatus()">تحديث حالة الاتصال</button>
+<div class="status" id="connection">
+حالة الاتصال: غير متصل
+</div>
+
+<div class="actions">
+<button class="secondary" onclick="checkStatus()">تحديث الحالة</button>
 <button class="danger" onclick="disconnectBot()">قطع الاتصال</button>
-<button class="secondary" onclick="window.open('https://whatsapp.com/channel/0029VbE0UbjKwqSYg0WUxu42','_blank')">قناة المطور</button>
+</div>
 
-<hr style="border-color:#18385e;margin:25px 0">
+<button class="secondary" onclick="window.open('https://whatsapp.com/channel/0029VbE0UbjKwqSYg0WUxu42','_blank')">
+قناة المطور
+</button>
 
-<button class="secondary" onclick="showAdmin()">لوحة المطور</button>
+<div class="divider"></div>
+
+<button class="secondary" onclick="showAdmin()">
+⚙ لوحة المطور
+</button>
 
 <div id="adminLogin" class="panel">
 <h3>دخول المطور</h3>
-<input id="adminPassword" type="password" placeholder="كلمة مرور المطور">
-<button onclick="adminLogin()">دخول</button>
+<input id="adminPassword" type="password"
+placeholder="كلمة مرور المطور">
+<button onclick="adminLogin()">دخول لوحة المطور</button>
 </div>
 
 <div id="dashboard" class="panel">
-<h3>لوحة المطور</h3>
-<p id="stats" class="message">اضغط تحديث الإحصائيات.</p>
-<button class="secondary" onclick="loadStats()">تحديث الإحصائيات</button>
+<h3>لوحة تحكم RICO</h3>
+
+<p id="stats" class="message">
+اضغط تحديث الإحصائيات.
+</p>
+
+<button class="secondary" onclick="loadStats()">
+تحديث الإحصائيات
+</button>
+
+<div class="divider"></div>
 
 <h4>تغيير كلمة المرور</h4>
-<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة">
+<input id="newPassword" type="password"
+placeholder="كلمة المرور الجديدة">
 <button onclick="changePassword()">حفظ كلمة المرور</button>
 
+<div class="divider"></div>
+
 <h4>حد التنصيبات</h4>
-<input id="installLimit" type="number" min="1" placeholder="10">
+<input id="installLimit" type="number"
+min="1" placeholder="10">
 <button onclick="saveSettings()">حفظ الإعدادات</button>
 
 <p id="adminMessage" class="message"></p>
 </div>
 
-<div class="footer">RICO BOT © 2026</div>
-<p class="message" id="message"></p>
+<p id="message" class="message"></p>
+
+<div class="footer">
+RICO BOT © 2026
+<br>
+POWERED BY RICO
 </div>
+
+</main>
 
 <script>
 let currentToken=sessionStorage.getItem("rico_token")||"";
 let adminToken=sessionStorage.getItem("rico_admin")||"";
+
+async function readResponse(response){
+const text=await response.text();
+let data;
+try{
+data=JSON.parse(text);
+}catch{
+throw new Error(
+"الخادم لم يرجع رداً صحيحاً. تحقق من تشغيل المنصة."
+);
+}
+return data;
+}
 
 async function requestCode(){
 const phone=document.getElementById("phone").value.replace(/\D/g,"");
@@ -128,7 +275,8 @@ return;
 }
 
 button.disabled=true;
-message.textContent="جارٍ تجهيز كود الاقتران...";
+button.textContent="جارٍ تجهيز كود الاقتران...";
+message.textContent="يرجى الانتظار...";
 
 try{
 const response=await fetch("/api/pair",{
@@ -136,44 +284,57 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({phone})
 });
-const data=await response.json();
-if(!response.ok||!data.success)throw new Error(data.message||"فشل الطلب.");
+
+const data=await readResponse(response);
+
+if(!response.ok||!data.success){
+throw new Error(data.message||"فشل طلب الاقتران.");
+}
 
 currentToken=data.token;
 sessionStorage.setItem("rico_token",currentToken);
+
 document.getElementById("pairCode").textContent=data.code;
 document.getElementById("result").style.display="block";
 message.textContent="تم تجهيز الكود. أكمل الربط من واتساب.";
 checkStatus();
+
 }catch(error){
 message.textContent=error.message;
 }finally{
 button.disabled=false;
+button.textContent="⚡ تنصيب البوت الآن";
 }
 }
 
 async function copyCode(){
 const code=document.getElementById("pairCode").textContent;
 if(!code||code==="--------")return;
+
 try{
 await navigator.clipboard.writeText(code);
 alert("تم نسخ الكود.");
 }catch{
-alert("تعذر النسخ.");
+alert("تعذر النسخ من المتصفح.");
 }
 }
 
 async function checkStatus(){
 if(!currentToken){
-document.getElementById("connection").textContent="اطلب كود الاقتران أولاً.";
+document.getElementById("connection").textContent=
+"اطلب كود الاقتران أولاً.";
 return;
 }
+
 try{
 const response=await fetch("/api/my/status",{
 headers:{Authorization:"Bearer "+currentToken}
 });
-const data=await response.json();
-if(!response.ok)throw new Error(data.message);
+
+const data=await readResponse(response);
+
+if(!response.ok)throw new Error(data.message||"تعذر جلب الحالة.");
+
 document.getElementById("connection").textContent=
 data.connected?"متصل بنجاح ✓":"في انتظار إكمال ربط واتساب...";
 }catch(error){
@@ -182,21 +343,32 @@ document.getElementById("connection").textContent=error.message;
 }
 
 async function disconnectBot(){
-if(!currentToken){alert("لا توجد جلسة مسجلة.");return;}
+if(!currentToken){
+alert("لا توجد جلسة مسجلة.");
+return;
+}
+
 if(!confirm("هل تريد قطع اتصال رقمك؟"))return;
+
 try{
 const response=await fetch("/api/my/disconnect",{
 method:"POST",
 headers:{Authorization:"Bearer "+currentToken}
 });
-const data=await response.json();
-if(!response.ok)throw new Error(data.message);
+
+const data=await readResponse(response);
+
+if(!response.ok)throw new Error(data.message||"تعذر الفصل.");
+
 currentToken="";
 sessionStorage.removeItem("rico_token");
 document.getElementById("result").style.display="none";
 document.getElementById("connection").textContent="غير متصل";
 document.getElementById("message").textContent=data.message;
-}catch(error){alert(error.message);}
+
+}catch(error){
+alert(error.message);
+}
 }
 
 function showAdmin(){
@@ -205,19 +377,26 @@ document.getElementById("adminLogin").style.display="block";
 
 async function adminLogin(){
 const password=document.getElementById("adminPassword").value;
+
 try{
 const response=await fetch("/api/admin/login",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({password})
 });
-const data=await response.json();
+
+const data=await readResponse(response);
+
 if(!response.ok)throw new Error(data.message||"فشل الدخول.");
+
 adminToken=data.token;
 sessionStorage.setItem("rico_admin",adminToken);
+
 document.getElementById("adminLogin").style.display="none";
 document.getElementById("dashboard").style.display="block";
+
 loadStats();
+
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
 }
@@ -228,16 +407,21 @@ try{
 const response=await fetch("/api/admin/stats",{
 headers:{Authorization:"Bearer "+adminToken}
 });
-const data=await response.json();
-if(!response.ok)throw new Error("انتهت جلسة المطور أو الدخول غير صالح.");
+
+const data=await readResponse(response);
+
+if(!response.ok)throw new Error(data.message||"تعذر جلب الإحصائيات.");
+
 document.getElementById("stats").textContent=
-"إجمالي التنصيبات المسجلة: "+data.totalInstalls+
+"إجمالي التنصيبات: "+data.totalInstalls+
 " | تنصيبات اليوم: "+data.installsToday+
 " | الجلسات الموجودة: "+data.installed+
 " | المتصلون: "+data.connected+
 " | حد التنصيب: "+data.installLimit+
 " | الصيانة: "+(data.maintenance?"مفعلة":"متوقفة");
+
 document.getElementById("installLimit").value=data.installLimit;
+
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
 }
@@ -245,6 +429,7 @@ document.getElementById("adminMessage").textContent=error.message;
 
 async function changePassword(){
 const password=document.getElementById("newPassword").value;
+
 try{
 const response=await fetch("/api/admin/password",{
 method:"POST",
@@ -254,10 +439,14 @@ Authorization:"Bearer "+adminToken
 },
 body:JSON.stringify({password})
 });
-const data=await response.json();
+
+const data=await readResponse(response);
+
 if(!response.ok)throw new Error(data.message||"تعذر تغيير كلمة المرور.");
+
 document.getElementById("adminMessage").textContent=data.message;
 document.getElementById("newPassword").value="";
+
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
 }
@@ -265,6 +454,7 @@ document.getElementById("adminMessage").textContent=error.message;
 
 async function saveSettings(){
 const installLimit=Number(document.getElementById("installLimit").value);
+
 try{
 const response=await fetch("/api/admin/settings",{
 method:"POST",
@@ -274,10 +464,14 @@ Authorization:"Bearer "+adminToken
 },
 body:JSON.stringify({installLimit})
 });
-const data=await response.json();
+
+const data=await readResponse(response);
+
 if(!response.ok)throw new Error(data.message||"تعذر حفظ الإعدادات.");
-document.getElementById("adminMessage").textContent="تم حفظ الإعدادات.";
+
+document.getElementById("adminMessage").textContent=data.message;
 loadStats();
+
 }catch(error){
 document.getElementById("adminMessage").textContent=error.message;
 }
