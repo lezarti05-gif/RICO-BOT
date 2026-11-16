@@ -1,0 +1,308 @@
+mkdir -p public
+cat > public/index.html <<'EOF'
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050b1c">
+<title>RICO BOT</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#050b1c;color:#edf5ff;
+ font-family:Tahoma,Arial,sans-serif;
+ min-height:100vh;overflow-x:hidden
+}
+body:before,body:after{
+ content:"";position:fixed;width:300px;height:300px;
+ border-radius:50%;filter:blur(100px);opacity:.22;
+ background:#087bff;z-index:-1
+}
+body:before{top:-100px;right:-100px}
+body:after{bottom:-120px;left:-100px;background:#00c8ff}
+header{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:18px 6%;border-bottom:1px solid #17345c;
+ background:#071329dd;position:sticky;top:0;z-index:10;
+ backdrop-filter:blur(12px)
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:bold;font-size:21px}
+.logo{
+ width:43px;height:43px;display:grid;place-items:center;
+ background:linear-gradient(145deg,#168bff,#063b91);
+ clip-path:polygon(50% 0%,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%);
+ box-shadow:0 0 25px #087bff;font-weight:bold
+}
+.menu{display:flex;gap:9px;flex-wrap:wrap}
+button{
+ border:1px solid #1763a8;background:#0c2850;color:white;
+ padding:11px 17px;border-radius:10px;cursor:pointer;
+ font-weight:bold;transition:.2s
+}
+button:hover{background:#1264bd;box-shadow:0 0 15px #087bff66}
+button.primary{background:linear-gradient(100deg,#087bff,#00a8df);border:0}
+button.danger{background:#511d30;border-color:#a33c60}
+main{max-width:1100px;margin:auto;padding:35px 18px}
+.hero{text-align:center;padding:35px 10px 25px}
+.hero h1{font-size:36px;margin:8px 0;color:#fff}
+.hero h1 span{color:#35aaff}
+.hero p{color:#9eb8d8;line-height:1.9}
+.panel{
+ background:linear-gradient(145deg,#0b1b35,#071329);
+ border:1px solid #17416c;border-radius:18px;
+ padding:23px;margin:18px 0;box-shadow:0 10px 35px #0005
+}
+.panel h2{font-size:19px;margin-top:0}
+.field{display:flex;gap:10px;flex-wrap:wrap}
+input{
+ flex:1;min-width:190px;background:#030d20;color:white;
+ border:1px solid #24517e;border-radius:10px;padding:15px;
+ outline:none;font-size:16px
+}
+input:focus{border-color:#159bff;box-shadow:0 0 12px #087bff55}
+.note{color:#91aaca;font-size:13px;line-height:1.8}
+#result{display:none;margin-top:18px}
+.code{
+ font-size:27px;letter-spacing:5px;text-align:center;
+ color:#55c4ff;background:#020b1b;border:1px dashed #168bff;
+ border-radius:12px;padding:18px;font-weight:bold
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.step{
+ background:#07162c;border:1px solid #173b62;border-radius:15px;
+ padding:18px;text-align:center
+}
+.step .number{
+ width:48px;height:48px;margin:0 auto 12px;
+ display:grid;place-items:center;border-radius:14px;
+ background:#0d3970;color:#62c8ff;font-size:22px;font-weight:bold
+}
+.step p{color:#a9bed8;font-size:13px;line-height:1.8}
+.section-title{margin:35px 0 15px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:#091a33;border:1px solid #17416c;padding:17px;border-radius:13px}
+.stat strong{display:block;color:#48baff;font-size:25px;margin-top:10px}
+.hidden{display:none!important}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+nav button.active{background:#087bff}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th,td{padding:13px;border-bottom:1px solid #183653;text-align:right}
+th{color:#55baff}
+.table-wrap{overflow-x:auto}
+.status{color:#54e5a4}
+footer{text-align:center;padding:30px;color:#7894b8;font-size:13px}
+a{color:#56baff}
+@media(max-width:600px){
+ header{padding:13px 4%;align-items:flex-start;gap:10px;flex-direction:column}
+ .hero h1{font-size:27px}
+ main{padding:20px 13px}
+ .panel{padding:17px}
+}
+</style>
+</head>
+
+<body>
+<header>
+ <div class="brand">
+  <div class="logo">R</div>
+  <span>RICO BOT</span>
+ </div>
+ <div class="menu">
+  <button onclick="showPage('home')">الرئيسية</button>
+  <button onclick="showPage('help')">طريقة الاقتران</button>
+  <button onclick="showPage('dashboard')">لوحة التحكم</button>
+ </div>
+</header>
+
+<main>
+<section id="home">
+ <div class="hero">
+  <div class="logo" style="margin:auto;width:65px;height:65px;font-size:25px">R</div>
+  <h1>مرحبا بك في <span>RICO BOT</span></h1>
+  <p>منصة تنصيب وربط بوت واتساب الخاص بك بسهولة وأمان</p>
+ </div>
+
+ <div class="panel">
+  <h2>تنصيب رقم واتساب</h2>
+  <p class="note">أدخل رقمك مع رمز الدولة، بدون علامة + أو مسافات.</p>
+  <div class="field">
+   <input id="phone" type="tel" inputmode="numeric"
+    placeholder="مثال: 249XXXXXXXX" maxlength="15">
+   <button class="primary" onclick="requestCode()">طلب كود الاقتران</button>
+  </div>
+  <p class="note" id="message"></p>
+
+  <div id="result">
+   <h3>كود واتساب الخاص بك</h3>
+   <div class="code" id="pairCode">--------</div>
+   <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+    <button class="primary" onclick="copyCode()">نسخ الكود</button>
+    <button onclick="checkStatus()">تحديث حالة الاتصال</button>
+   </div>
+   <p class="note" id="connection">في انتظار ربط واتساب...</p>
+   <p class="note">استخدم الكود في واتساب من الأجهزة المرتبطة ثم ربط جهاز.</p>
+  </div>
+ </div>
+
+ <h2 class="section-title">طريقة طلب كود الاقتران</h2>
+ <div class="grid">
+  <div class="step">
+   <div class="number">1</div>
+   <h3>أدخل رقمك</h3>
+   <p>اكتب رقم واتساب مع رمز الدولة بدون + أو مسافات.</p>
+  </div>
+  <div class="step">
+   <div class="number">2</div>
+   <h3>اطلب الكود</h3>
+   <p>اضغط زر طلب كود الاقتران وانتظر تجهيز طلبك.</p>
+  </div>
+  <div class="step">
+   <div class="number">3</div>
+   <h3>افتح واتساب</h3>
+   <p>اذهب إلى الأجهزة المرتبطة واختر ربط جهاز.</p>
+  </div>
+  <div class="step">
+   <div class="number">4</div>
+   <h3>أدخل الكود</h3>
+   <p>أدخل كود الاقتران الذي ظهر لك في المنصة.</p>
+  </div>
+ </div>
+
+ <div class="panel">
+  <h2>قناة المطور</h2>
+  <p class="note">تابع أخبار وتحديثات RICO BOT.</p>
+  <a href="https://whatsapp.com/channel/0029Vb8pGX6CRs1tDnkEnC1L" target="_blank">
+   زيارة قناة RICO BOT
+  </a>
+ </div>
+</section>
+
+<section id="help" class="hidden">
+ <div class="hero">
+  <h1>شرح <span>طريقة الاقتران</span></h1>
+  <p>اتبع الخطوات بالترتيب لربط حسابك.</p>
+ </div>
+ <div class="grid">
+  <div class="step"><div class="number">1</div><h3>المنصة</h3><p>أدخل رقم واتساب في خانة التنصيب.</p></div>
+  <div class="step"><div class="number">2</div><h3>طلب الكود</h3><p>اضغط طلب كود الاقتران وانتظر النتيجة.</p></div>
+  <div class="step"><div class="number">3</div><h3>الأجهزة المرتبطة</h3><p>افتح واتساب ثم قائمة الأجهزة المرتبطة.</p></div>
+  <div class="step"><div class="number">4</div><h3>إتمام الربط</h3><p>أدخل الكود في واتساب على جهازك.</p></div>
+ </div>
+ <button onclick="showPage('home')">العودة للتنصيب</button>
+</section>
+
+<section id="dashboard" class="hidden">
+ <div class="hero">
+  <h1>لوحة <span>تحكم RICO</span></h1>
+  <p>لوحة إدارة المنصة - تتطلب تسجيل دخول المطور.</p>
+ </div>
+
+ <div class="panel" id="loginPanel">
+  <h2>دخول المطور</h2>
+  <input id="adminPassword" type="password" placeholder="كلمة مرور المطور">
+  <button class="primary" onclick="adminLogin()">دخول</button>
+  <p class="note" id="loginMessage">لن يتم فتح لوحة الإدارة إلا بعد التحقق من كلمة المرور على الخادم.</p>
+ </div>
+
+ <div id="adminPanel" class="hidden">
+  <nav>
+   <button class="active" onclick="adminTab('overview',this)">الرئيسية</button>
+   <button onclick="adminTab('users',this)">المستخدمون</button>
+   <button onclick="adminTab('settings',this)">الإعدادات</button>
+   <button onclick="adminTab('logs',this)">السجلات</button>
+  </nav>
+
+  <div id="overview" class="adminTab panel">
+   <h2>الإحصائيات</h2>
+   <div class="stats">
+    <div class="stat">إجمالي المستخدمين<strong id="totalUsers">—</strong></div>
+    <div class="stat">البوتات المتصلة<strong id="connectedBots">—</strong></div>
+    <div class="stat">البوتات المنفصلة<strong id="disconnectedBots">—</strong></div>
+    <div class="stat">عمليات التنصيب<strong id="installCount">—</strong></div>
+   </div>
+   <p class="note">ستظهر الإحصائيات بعد ربط لوحة التحكم بقاعدة البيانات.</p>
+  </div>
+
+  <div id="users" class="adminTab panel hidden">
+   <h2>إدارة المستخدمين</h2>
+   <div class="table-wrap">
+    <table><thead><tr><th>المستخدم</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+    <tbody id="userRows"><tr><td colspan="3">بانتظار ربط واجهة الإدارة بالخادم.</td></tr></tbody></table>
+   </div>
+  </div>
+
+  <div id="settings" class="adminTab panel hidden">
+   <h2>إعدادات المنصة</h2>
+   <label>حد التنصيب</label>
+   <input id="installLimit" type="number" min="1" value="10">
+   <button onclick="saveSettings()">حفظ الحد</button>
+   <p class="note">سيتم تفعيل الحفظ بعد إنشاء واجهة الإدارة الآمنة في الخادم.</p>
+   <hr style="border-color:#173b62">
+   <button class="danger" onclick="alert('سيتم ربط وضع الصيانة بالخادم لاحقاً')">وضع الصيانة</button>
+  </div>
+
+  <div id="logs" class="adminTab panel hidden">
+   <h2>سجل الأنشطة والأخطاء</h2>
+   <p class="note">سيتم عرض السجلات بعد ربط نظام التسجيل بالخادم.</p>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer>
+ RICO BOT © 2026 — جميع الحقوق محفوظة
+</footer>
+
+<script>
+let currentPhone = "";
+
+function showPage(page){
+ document.querySelectorAll("main section").forEach(s=>s.classList.add("hidden"));
+ document.getElementById(page).classList.remove("hidden");
+}
+
+async function requestCode(){
+ const phone = document.getElementById("phone").value.replace(/\D/g,"");
+ const message = document.getElementById("message");
+ if(phone.length < 8 || phone.length > 15){
+  message.textContent = "تأكد من كتابة الرقم مع رمز الدولة بشكل صحيح.";
+  return;
+ }
+ currentPhone = phone;
+ message.textContent = "واجهة طلب الاقتران جاهزة، لكن خدمة الاقتران لم تُربط بالخادم بعد.";
+}
+
+function copyCode(){
+ const code = document.getElementById("pairCode").textContent;
+ if(!code || code === "--------") return;
+ navigator.clipboard.writeText(code)
+  .then(()=>alert("تم نسخ الكود"))
+  .catch(()=>alert("تعذر النسخ"));
+}
+
+async function checkStatus(){
+ document.getElementById("connection").textContent =
+ "لم يتم ربط خدمة حالة الاتصال بالخادم بعد.";
+}
+
+async function adminLogin(){
+ document.getElementById("loginMessage").textContent =
+ "تسجيل دخول المطور يحتاج إلى واجهة تحقق آمنة على الخادم. لم يتم تفعيل الدخول بعد.";
+}
+
+function adminTab(tab,button){
+ document.querySelectorAll(".adminTab").forEach(x=>x.classList.add("hidden"));
+ document.getElementById(tab).classList.remove("hidden");
+ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+ button.classList.add("active");
+}
+
+function saveSettings(){
+ alert("لم يتم تفعيل حفظ الإعدادات بعد. سيتم ربطها بقاعدة البيانات.");
+}
+</script>
+</body>
+</html>
+EOF
